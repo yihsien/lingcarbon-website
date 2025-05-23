@@ -2,20 +2,311 @@
 @tailwind components;
 @tailwind utilities;
 
+:root{
+  /* Colors */
+  --color-companyBlue: #007D8A;
+  --color-companyBlue-light: #E0F2F7;
+  --color-purple-600: #7C3AED;
+  --color-purple-400: #A78BFA;
+  --color-green-600: #16A34A;
+  --color-green-500: #22C55E;
+  --color-green-400: #4ADE80; /* Added for consistency if used */
+  --color-yellow-500: #EAB308;
+  --color-yellow-400: #FACC15;
+  --color-pink-500: #EC4899;
+  --color-pink-400: #F472B6;
+  --color-sky-400: #38BDF8;
+  --color-sky-500: #0EA5E9;
+  --color-slate-50: #F8FAFC;
+  --color-slate-100: #F1F5F9;
+  --color-slate-200: #E2E8F0;
+  --color-slate-300: #CBD5E1;
+  --color-slate-400: #94A3B8;
+  --color-slate-500: #64748B;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1E293B;
+  --color-slate-900: #0F172A;
+
+
+  /* Font Families */
+  --font-satoshi: 'Satoshi', sans-serif;
+
+  /* Animations & Keyframes */
+  --animation-pulse-slow: pulse-slow 8s infinite ease-in-out;
+  --animation-pulse-slower: pulse-slower 10s infinite ease-in-out;
+  --animation-bounce-slow: bounce-slow 2s infinite;
+  --animation-logoSegmentFadeIn: logoSegmentFadeIn 0.7s ease-out forwards;
+  --animation-logoLetterFadeIn: logoLetterFadeIn 0.5s ease-out forwards;
+  --animation-logoOHexagonFadeIn: logoOHexagonFadeIn 0.5s ease-out forwards;
+  --animation-animateTop: animateTop 2.5s linear infinite;
+  --animation-animateRight: animateRight 2.5s linear infinite 0.625s;
+  --animation-animateBottom: animateBottom 2.5s linear infinite 1.25s;
+  --animation-animateLeft: animateLeft 2.5s linear infinite 1.875s;
+  --animation-animateBlob1: animateBlob1 30s ease-in-out infinite alternate;
+  --animation-animateBlob2: animateBlob2 35s ease-in-out infinite alternate;
+  --animation-animateBlob3: animateBlob3 26s ease-in-out infinite alternate;
+} 
+
+/* Apply base styles and custom properties */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+  --radius-lg: 0.75rem; /* For bento grid corners, if needed directly in CSS */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
   }
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: rgb(var(--foreground-rgb));
+  /* background: linear-gradient(to bottom, transparent, rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb)); */
+  transition: background-color 0.5s ease-in-out; 
+  background-repeat: repeat;
+  background-position: 0 0;
+  font-family: var(--font-satoshi); /* Use the CSS variable */
 }
+
+html.light body {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.07) 0.5px, transparent 1px); 
+  background-size: 10px 10px; 
+  background-color: #d7d8d8; /* Light mode base background */
+}
+html.dark body {
+  background-image: radial-gradient(rgba(50, 50, 50, 0.5) 0.5px, transparent 1px);
+  background-size: 10px 10px; 
+  background-color: #000000; /* Dark mode base background */
+}
+
+.lingcarbon-logo-main svg { 
+  height: 100%;
+  width: auto;
+  max-width: 271.51px; 
+}
+.lingcarbon-logo-footer svg {
+  height: 100%;
+  width: auto;
+  max-width: 200px; 
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+@keyframes pulse-slower {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.03);
+  }
+}
+@keyframes bounce-slow {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-15px);
+  }
+  60% {
+    transform: translateY(-7px);
+  }
+}
+@keyframes logoSegmentFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes logoLetterFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes logoOHexagonFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes animateTop {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  20% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  40%, 100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+@keyframes animateRight {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  20% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  40%, 100% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+}
+@keyframes animateBottom {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  20% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  40%, 100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+@keyframes animateLeft {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  20% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  40%, 100% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+}
+@keyframes animateBlob1 {
+  0% {
+    transform: translate(-30vw, -30vh) scale(1.2);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(40vw, 50vh) scale(1.6);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-20vw, -10vh) scale(1.1);
+    opacity: 0.7;
+  }
+}
+@keyframes animateBlob2 {
+  0% {
+    transform: translate(70vw, 10vh) scale(1.4);
+    opacity: 0.9;
+  }
+  50% {
+    transform: translate(20vw, 80vh) scale(0.8);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(60vw, 0vh) scale(1.3);
+    opacity: 0.8;
+  }
+}
+@keyframes animateBlob3 {
+  0% {
+    transform: translate(10vw, 80vh) scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translate(-15vw, 20vh) scale(1.5);
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate(25vw, 60vh) scale(1.1);
+    opacity: 0.6;
+  }
+}
+
+/* Utility classes using these animations */
+.animate-pulse-slow { animation: var(--animation-pulse-slow); }
+.animate-pulse-slower { animation: var(--animation-pulse-slower); }
+.animate-bounce-slow { animation: var(--animation-bounce-slow); }
+.animate-logo #hexMarkSegment1 { animation: var(--animation-logoSegmentFadeIn); animation-delay: 0.2s; }
+.animate-logo #hexMarkSegment2 { animation: var(--animation-logoSegmentFadeIn); animation-delay: 0.4s; }
+.animate-logo #hexMarkSegment3 { animation: var(--animation-logoSegmentFadeIn); animation-delay: 0.6s; }
+.animate-logo #lingcarbonTextGroup > g:nth-of-type(2) > path#logoLetterO { animation: var(--animation-logoOHexagonFadeIn); animation-delay: 1.2s; }
+.animate-logo #lingcarbonTextGroup > g:nth-of-type(2) > path:not(#logoLetterO) { animation: var(--animation-logoLetterFadeIn); /* Individual delays would need to be applied differently or via more specific CSS variables if kept this way */ }
+.animate-logo #lingcarbonTextGroup > g:first-of-type path { animation: var(--animation-logoLetterFadeIn); animation-delay: 1.2s; }
+
+
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Animated Blobs Background CSS */
+.animated-blob-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1; /* Ensure it's behind content */
+}
+.animated-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(100px); 
+  will-change: transform, opacity; 
+}
+
+.blob-1 { /* Spotlight blob */
+  width: 80vw; height: 80vw; 
+  max-width: 1000px; max-height: 1000px;
+  animation: animateBlob1 30s ease-in-out infinite alternate;
+}
+html.light .blob-1 { background-color: rgba(200, 205, 210, 0.35); } 
+html.dark .blob-1 { background-color: rgba(50, 55, 60, 0.5); }  
+
+.blob-2 { /* Company color influence */
+  width: 70vw; height: 70vw;
+  max-width: 800px; max-height: 800px;
+  animation: animateBlob2 35s ease-in-out infinite alternate;
+  animation-delay: -10s; 
+}
+html.light .blob-2 { background-color: rgba(0, 125, 138, 0.2); } 
+html.dark .blob-2 { background-color: rgba(0, 125, 138, 0.4); } 
+
+.blob-3 { /* Another subtle color */
+  width: 60vw; height: 60vw;
+  max-width: 700px; max-height: 700px;
+  animation: animateBlob3 26s ease-in-out infinite alternate;
+  animation-delay: -18s;
+}
+html.light .blob-3 { background-color: rgba(180, 190, 200, 0.25); } 
+html.dark .blob-3 { background-color: rgba(40, 50, 70, 0.4); } 
