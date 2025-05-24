@@ -22,14 +22,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
 
       <body className="font-satoshi bg-white dark:bg-black">
+        {/* Global animated background */}
+        <div className="animated-blob-container">
+          <div className="animated-blob blob-1" />
+          <div className="animated-blob blob-2" />
+          <div className="animated-blob blob-3" />
+        </div>
+
         <ThemeProvider defaultTheme="dark" storageKey="lingcarbon-theme">
           <LanguageProvider>
-            <div className="animated-blob-container">
-              <div className="animated-blob blob-1" />
-              <div className="animated-blob blob-2" />
-              <div className="animated-blob blob-3" />
-            </div>
-
             <div className="relative z-10">{children}</div>
           </LanguageProvider>
         </ThemeProvider>

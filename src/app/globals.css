@@ -253,6 +253,22 @@ html.dark body {
   }
 }
 
+/* Keyframes for glowing border */
+@keyframes border-glow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 200% 50%;
+  }
+}
+
+@keyframes running-light-border {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
 /* Utility classes using these animations */
 .animate-pulse-slow { animation: var(--animation-pulse-slow); }
 .animate-pulse-slower { animation: var(--animation-pulse-slower); }
@@ -261,9 +277,27 @@ html.dark body {
 .animate-logo #hexMarkSegment2 { animation: var(--animation-logoSegmentFadeIn); animation-delay: 0.4s; }
 .animate-logo #hexMarkSegment3 { animation: var(--animation-logoSegmentFadeIn); animation-delay: 0.6s; }
 .animate-logo #lingcarbonTextGroup > g:nth-of-type(2) > path#logoLetterO { animation: var(--animation-logoOHexagonFadeIn); animation-delay: 1.2s; }
-.animate-logo #lingcarbonTextGroup > g:nth-of-type(2) > path:not(#logoLetterO) { animation: var(--animation-logoLetterFadeIn); /* Individual delays would need to be applied differently or via more specific CSS variables if kept this way */ }
+.animate-logo #lingcarbonTextGroup > g:nth-of-type(2) > path:not(#logoLetterO) { animation: var(--animation-logoLetterFadeIn); }
 .animate-logo #lingcarbonTextGroup > g:first-of-type path { animation: var(--animation-logoLetterFadeIn); animation-delay: 1.2s; }
 
+/* Hex segments */
+.animate-logo polygon:nth-of-type(1) { animation: var(--animation-logoSegmentFadeIn); animation-delay: 0.2s; }
+.animate-logo polygon:nth-of-type(2) { animation: var(--animation-logoSegmentFadeIn); animation-delay: 0.4s; }
+.animate-logo polygon:nth-of-type(3) { animation: var(--animation-logoSegmentFadeIn); animation-delay: 0.6s; }
+
+/* All text letters except the "O" hexagon */
+.animate-logo g > g > path { 
+  animation: var(--animation-logoLetterFadeIn);
+  animation-delay: 1.0s;
+}
+.animate-logo > g > g > path:last-of-type { /* The "O" hexagon */
+  animation: var(--animation-logoOHexagonFadeIn);
+  animation-delay: 1.2s;
+}
+.animate-logo g > path:last-of-type { /* The "O" hexagon */
+  animation: var(--animation-logoOHexagonFadeIn);
+  animation-delay: 1.2s;
+}
 
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
@@ -309,4 +343,23 @@ html.dark .blob-2 { background-color: rgba(0, 125, 138, 0.4); }
   animation-delay: -18s;
 }
 html.light .blob-3 { background-color: rgba(180, 190, 200, 0.25); } 
-html.dark .blob-3 { background-color: rgba(40, 50, 70, 0.4); } 
+html.dark .blob-3 { background-color: rgba(40, 50, 70, 0.4); }
+
+/* Running light border effect */
+.glow-border {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Button content stays above the effect */
+.glow-border > * {
+  position: relative;
+  z-index: 3;
+}
+
+/* Optional: Remove default border/background for best effect */
+button.glow-border {
+  background: transparent;
+  color: inherit;
+  /* @apply px-6 py-3 font-bold; */ /* Not needed if you use Tailwind in JSX */
+}

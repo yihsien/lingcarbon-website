@@ -35,18 +35,70 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
         </h1>
         <p className="text-lg sm:text-xl lg:text-2xl text-slate-700 dark:text-slate-200 max-w-3xl mx-auto mb-10">{t.heroSubtitle}</p>
         <div className="flex justify-center items-center">
-          <button 
-            onClick={onContactClick}
-            className={`relative group w-auto ${buttonTextColorClass} border-2 border-[var(--color-companyBlue)] font-semibold rounded-3xl text-lg transition-all duration-300 transform hover:scale-105 p-px overflow-hidden hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-companyBlue)]/50`}
-          > 
-            <span className="border-segment top"></span>
-            <span className="border-segment right"></span>
-            <span className="border-segment bottom"></span>
-            <span className="border-segment left"></span>
-            <span className={`relative inline-flex items-center justify-center w-full h-full bg-transparent rounded-[calc(1.5rem-2px)] py-3 px-8`}> 
-              {t.heroCTA} <ArrowRight size={22} className="ml-2 group-hover:translate-x-1 transition-transform" /> 
-            </span>
-          </button>
+<button
+  onClick={onContactClick}
+  className={`
+    relative group w-[224px] h-[54px] rounded-[27px]
+    font-semibold text-lg flex items-center justify-center
+    overflow-hidden transition-transform duration-300
+    hover:scale-105 focus:outline-none
+    ${buttonTextColorClass}
+  `}
+>
+  {/* label */}
+  <span className="relative z-10 flex items-center px-8">
+    {t.heroCTA}
+    <ArrowRight size={22} className="ml-2 transition-transform group-hover:translate-x-1" />
+  </span>
+
+  {/* SVG border + glow */}
+  <svg
+    className="absolute inset-0 h-full w-full pointer-events-none"
+    viewBox="0 0 302 56"   /* 300×54 pill + 1-px stroke both sides */
+    fill="none"
+    aria-hidden="true"
+  >
+    <defs>
+      <linearGradient id="ray-glow" x1="0" y1="0" x2="302" y2="56" gradientUnits="userSpaceOnUse">
+        <stop offset="0%"   stopColor="#FFFFFF00"/>
+        <stop offset="50%"  stopColor="#FFFFFFCC"/>
+        <stop offset="100%" stopColor="#FFFFFF00"/>
+      </linearGradient>
+
+      <filter id="ray-blur" x="-50%" y="-50%" width="200%" height="200%">
+        <feGaussianBlur stdDeviation="3" result="blur"/>
+        <feMerge>
+          <feMergeNode in="blur"/>
+          <feMergeNode in="SourceGraphic"/>
+        </feMerge>
+      </filter>
+    </defs>
+
+    {/* 1 — static border (exactly 1 px) */}
+    <rect
+      x="0.5" y="0.5" width="301" height="55" rx="27.5"
+      stroke="var(--color-companyBlue)"
+      strokeWidth="1"
+    />
+
+    {/* 2 — moving glow, same 1 px width */}
+    <rect
+      x="0.5" y="0.5" width="301" height="55" rx="27.5"
+      stroke="url(#ray-glow)"
+      strokeWidth="1"
+      strokeLinecap="round"
+      filter="url(#ray-blur)"
+      strokeDasharray="110 603"   /* 110-px bright segment, rest gap (perimeter ≈ 713) */
+    >
+      <animate
+        attributeName="stroke-dashoffset"
+        values="0;-713"
+        dur="3s"
+        repeatCount="indefinite"
+      />
+    </rect>
+  </svg>
+</button>
         </div>
         <div className="mt-16 animate-bounce-slow"> 
             <a 

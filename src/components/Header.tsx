@@ -85,22 +85,27 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <Link href="/" className="flex items-center space-x-2">
-            <AnimatedLogo variant="main" />
+            <AnimatedLogo
+              className="h-8 md:h-9 lingcarbon-logo-main animate-logo"
+              variant="main"
+            />
           </Link>
           
           <nav className="hidden md:flex items-center space-x-1"> {/* Reduced space-x for tighter packing if needed */}
             {navItemsData.map((item) => (
               <div
                 key={item.name}
-                className={`relative ${item.dropdownItems ? 'pb-2' : ''}`} // pb-2 on parent of Services for hover bridge
+                className="relative"
+                // Move handlers here so both button and dropdown are covered
                 onMouseEnter={item.dropdownItems ? () => setIsServicesDropdownOpen(true) : undefined}
                 onMouseLeave={item.dropdownItems ? () => setIsServicesDropdownOpen(false) : undefined}
               >
                 {item.dropdownItems ? (
                   <>
                     <button
+                      type="button"
                       ref={servicesButtonRef}
-                      className="text-slate-700 dark:text-slate-300 hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-companyBlue)] transition-colors duration-200 font-medium text-sm flex items-center py-2 px-3" // Consistent padding
+                      className="text-slate-700 dark:text-slate-300 hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-companyBlue)] transition-colors duration-200 font-medium text-sm flex items-center py-2 px-3"
                     >
                       {item.name}
                       <ChevronDown size={16} className={`ml-1 transition-transform duration-200 ${isServicesDropdownOpen ? 'rotate-180' : ''}`} />
@@ -108,9 +113,9 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                     {isServicesDropdownOpen && (
                       <div
                         ref={servicesDropdownRef}
-                        className="absolute top-full left-1/2 -translate-x-1/2 mt-0 w-screen max-w-md lg:max-w-2xl xl:max-w-6xl" // mt-0 for hover, pt-2 on child for visual space
+                        className="absolute top-full left-1/2 -translate-x-1/2 w-screen max-w-md lg:max-w-2xl xl:max-w-6xl"
                       >
-                        <div className="overflow-hidden rounded-2xl shadow-lg ring-1 ring-black/5 dark:ring-white/10 bg-white dark:bg-slate-800 pt-2"> {/* pt-2 here */}
+                        <div className="overflow-hidden rounded-2xl shadow-lg ring-1 ring-black/5 dark:ring-white/10 bg-white dark:bg-slate-800 pt-6 mt-4">
                           <div className="relative grid gap-x-6 gap-y-3 px-5 pb-4 sm:px-8 sm:pb-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                             {item.dropdownItems.map((subItem) => {
                               const Icon = subItem.icon;

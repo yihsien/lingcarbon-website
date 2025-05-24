@@ -85,7 +85,7 @@ const FeaturesSection: React.FC = () => {
 
 
   return (
-    <section id="features" className="py-20 sm:py-32 bg-transparent dark:bg-black text-slate-800 dark:text-slate-100 relative z-10"> 
+    <section id="features" className="py-20 sm:py-32 bg-transparent text-slate-800 dark:text-slate-100 relative z-10"> 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl font-bold mb-4">

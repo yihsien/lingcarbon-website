@@ -23,7 +23,7 @@ const WhyUsSection: React.FC = () => {
   const { language, t } = useLanguage();
   const advantages = whyUsAdvantagesData(language);
 
-  const sectionBgClass = theme === 'dark' ? 'dark:bg-black' : 'bg-transparent'; 
+  const sectionBgClass = theme === 'bg-transparent'; 
   const cardBgClass = theme === 'dark' ? 'dark:bg-slate-800/60 backdrop-blur-md' : 'bg-white/80 backdrop-blur-md';
   const textColorClass = theme === 'dark' ? 'text-slate-100' : 'text-slate-900';
   const subTextColorClass = theme === 'dark' ? 'text-slate-300' : 'text-slate-600';
