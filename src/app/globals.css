@@ -269,36 +269,6 @@ html.dark body {
   }
 }
 
-/* Utility classes using these animations */
-.animate-pulse-slow { animation: var(--animation-pulse-slow); }
-.animate-pulse-slower { animation: var(--animation-pulse-slower); }
-.animate-bounce-slow { animation: var(--animation-bounce-slow); }
-.animate-logo #hexMarkSegment1 { animation: var(--animation-logoSegmentFadeIn); animation-delay: 0.2s; }
-.animate-logo #hexMarkSegment2 { animation: var(--animation-logoSegmentFadeIn); animation-delay: 0.4s; }
-.animate-logo #hexMarkSegment3 { animation: var(--animation-logoSegmentFadeIn); animation-delay: 0.6s; }
-.animate-logo #lingcarbonTextGroup > g:nth-of-type(2) > path#logoLetterO { animation: var(--animation-logoOHexagonFadeIn); animation-delay: 1.2s; }
-.animate-logo #lingcarbonTextGroup > g:nth-of-type(2) > path:not(#logoLetterO) { animation: var(--animation-logoLetterFadeIn); }
-.animate-logo #lingcarbonTextGroup > g:first-of-type path { animation: var(--animation-logoLetterFadeIn); animation-delay: 1.2s; }
-
-/* Hex segments */
-.animate-logo polygon:nth-of-type(1) { animation: var(--animation-logoSegmentFadeIn); animation-delay: 0.2s; }
-.animate-logo polygon:nth-of-type(2) { animation: var(--animation-logoSegmentFadeIn); animation-delay: 0.4s; }
-.animate-logo polygon:nth-of-type(3) { animation: var(--animation-logoSegmentFadeIn); animation-delay: 0.6s; }
-
-/* All text letters except the "O" hexagon */
-.animate-logo g > g > path { 
-  animation: var(--animation-logoLetterFadeIn);
-  animation-delay: 1.0s;
-}
-.animate-logo > g > g > path:last-of-type { /* The "O" hexagon */
-  animation: var(--animation-logoOHexagonFadeIn);
-  animation-delay: 1.2s;
-}
-.animate-logo g > path:last-of-type { /* The "O" hexagon */
-  animation: var(--animation-logoOHexagonFadeIn);
-  animation-delay: 1.2s;
-}
-
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
 
@@ -362,4 +332,87 @@ button.glow-border {
   background: transparent;
   color: inherit;
   /* @apply px-6 py-3 font-bold; */ /* Not needed if you use Tailwind in JSX */
+}
+
+/* === Animation Keyframes === */
+
+/* Smoother, continuous fly-in animation for segments from the right */
+@keyframes lingCarbonSmoothFlyInFromRight {
+  from {
+    opacity: 0; /* Start transparent for fade-in */
+    transform: translateX(80px) rotateY(-80deg) rotateZ(-15deg) scale(0.6);
+    transform-origin: center center;
+  }
+  to {
+    opacity: 1; /* Fully opaque */
+    transform: translateX(0) rotateY(0deg) rotateZ(0deg) scale(1);
+    transform-origin: center center;
+  }
+}
+
+/* Text fades in (transparent to visible) */
+@keyframes lingCarbonFadeInTextOnly {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* === Animation Application === */
+
+/* Applying animations to SVG elements by their IDs, scoped by parent SVG ID */
+
+/* For the three hexagonal mark segments */
+/* Common animation properties for all segments */
+#lingcarbon-logo-light #hexMarkSegment1,
+#lingcarbon-logo-dark-instance #hexMarkSegment1,
+#lingcarbon-logo-light #hexMarkSegment2,
+#lingcarbon-logo-dark-instance #hexMarkSegment2,
+#lingcarbon-logo-light #hexMarkSegment3,
+#lingcarbon-logo-dark-instance #hexMarkSegment3 {
+  animation-name: lingCarbonSmoothFlyInFromRight; 
+  animation-duration: 1.6s; 
+  animation-fill-mode: forwards; /* Retains the 'to' state after animation finishes */
+  animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1); 
+  opacity: 0; /* Start hidden, animation will make it visible */
+}
+
+/* Staggered delays for the segments */
+#lingcarbon-logo-light #hexMarkSegment1,
+#lingcarbon-logo-dark-instance #hexMarkSegment1 {
+  animation-delay: 0.1s; 
+}
+
+#lingcarbon-logo-light #hexMarkSegment2,
+#lingcarbon-logo-dark-instance #hexMarkSegment2 {
+  animation-delay: 0.3s;
+}
+
+#lingcarbon-logo-light #hexMarkSegment3,
+#lingcarbon-logo-dark-instance #hexMarkSegment3 {
+  animation-delay: 0.5s;
+}
+
+/* For the text group */
+#lingcarbon-logo-light #lingcarbonTextGroup,
+#lingcarbon-logo-dark-instance #lingcarbonTextGroup {
+  opacity: 0; /* Start hidden */
+  will-change: opacity; /* Hint for browser optimization */
+  transform: translateZ(0); /* Promote to its own compositing layer */
+  backface-visibility: hidden; /* Helps prevent flickering on transformed/animated elements */
+  
+  animation-name: lingCarbonFadeInTextOnly;
+  animation-duration: 2s; /* Slower duration for text fade-in */
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-out;
+  /* Synchronization logic:
+    Last segment (#hexMarkSegment3) starts at 0.5s and has a duration of 1.6s.
+    Therefore, it finishes at 0.5s + 1.6s = 2.1s from the start of the overall logo animation.
+    The text animation has a duration of 1.5s.
+    To make the text animation finish at the same time (2.1s), it must start at:
+    2.1s (desired finish time) - 1.5s (text animation duration) = 0.6s.
+  */
+  animation-delay: 1.6s; 
 }

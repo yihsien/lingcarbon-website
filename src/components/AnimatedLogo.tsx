@@ -1,8 +1,7 @@
-
 'use client'; 
 
 import React, { useState, useEffect } from 'react'; 
-import { useTheme } from './ThemeProvider'; 
+import { useTheme } from './ThemeProvider'; // Adjust this path to your ThemeProvider file
 
 interface AnimatedLogoProps {
   className?: string;
@@ -18,98 +17,26 @@ const AnimatedLogo: React.FC<AnimatedLogoProps> = ({ className = '', variant = '
   }, []);
 
   const logoBaseClass = variant === 'main' ? 'h-8 md:h-9' : 'h-7'; 
-
-   // Common animation styles from the user's provided code, with prefixed keyframe names
-  const commonAnimationStyle = `
-    /* Smoother, continuous fly-in animation for segments from the right */
-    @keyframes lingCarbonSmoothFlyInFromRight { /* Prefixed keyframe name */
-      from {
-        opacity: 0; /* Start transparent for fade-in */
-        transform: translateX(80px) rotateY(-80deg) rotateZ(-15deg) scale(0.6);
-        transform-origin: center center;
-      }
-      to {
-        opacity: 1; /* Fully opaque */
-        transform: translateX(0) rotateY(0deg) rotateZ(0deg) scale(1);
-        transform-origin: center center;
-      }
-    }
-
-    /* Text fades in (transparent to visible) */
-    @keyframes lingCarbonFadeInTextOnly { /* Prefixed keyframe name */
-      from {
-        opacity: 0;
-      }
-      to {
-        opacity: 1;
-      }
-    }
-
-    /* Applying animations - These IDs are internal to each SVG instance */
-    #hexMarkSegment1 { 
-      animation-name: lingCarbonSmoothFlyInFromRight; /* Use prefixed name */
-      animation-duration: 1.6s; 
-      animation-fill-mode: forwards;
-      animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1); 
-      opacity: 0; 
-    }
-
-    #hexMarkSegment2 {
-      animation-name: lingCarbonSmoothFlyInFromRight; /* Use prefixed name */
-      animation-duration: 1.6s; 
-      animation-fill-mode: forwards;
-      animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1); 
-      opacity: 0; 
-      animation-delay: 0.3s; /* Staggered start */
-    }
-    #hexMarkSegment3 {
-      animation-name: lingCarbonSmoothFlyInFromRight; /* Use prefixed name */
-      animation-duration: 1.6s; 
-      animation-fill-mode: forwards;
-      animation-timing-function: cubic-bezier(0.25, 0.1, 0.25, 1); 
-      opacity: 0; 
-      animation-delay: 0.5s;  /* Staggered start */
-    }
-
-    #lingcarbonTextGroup {
-      opacity: 0; /* Start hidden */
-      animation: lingCarbonFadeInTextOnly 1.5s forwards; /* Use prefixed name, Slower duration */
-      animation-timing-function: ease-out;
-      /* Last segment (#hexMarkSegment3) starts at 0.5s and has duration 1.6s, so it finishes at 2.1s.
-         Text animation duration is 1.5s. To finish at 2.1s, it must start at 2.1s - 1.5s = 0.6s. */
-      animation-delay: 0.6s; 
-    }
-  `;
   
   // SVG content for light theme
   const SvgLight = () => (
-    // Using unique ID for the root SVG element, as per user's code (lingcarbon-logo-light)
-    // If multiple instances of AnimatedLogo are used, these IDs might need further suffixing based on props.
-    // For now, assuming the hydration fix is the primary concern for a single instance.
     <svg className="animate-logo" id="lingcarbon-logo-light" data-name="圖層 2" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 271.51 48.81" width="100%" height="100%">
       <defs>
+        {/* Styles specific to SVG structure, like fills and strokes, remain. Animations are moved to global.css */}
         <style>{`
-          /* Light theme specific styles, scoped to this SVG instance */
           #lingcarbon-logo-light .cls-1-light { fill: #00273c; } 
           #lingcarbon-logo-light .cls-1-light, 
           #lingcarbon-logo-light .cls-2-light, 
           #lingcarbon-logo-light .cls-3-light { stroke-width: 0px; }
-          /* Using unique ID for the gradient, as per user's code */
           #lingcarbon-logo-light .cls-2-light { fill: url(#NEW綠藍漸層_light_ctx_animated); } 
           #lingcarbon-logo-light .cls-3-light { fill: #557a75; }
-          
-          /* Apply common animations */
-          ${commonAnimationStyle}
-
         `}</style>
-        {/* Gradient ID as per user's code */}
         <linearGradient id="NEW綠藍漸層_light_ctx_animated" x1="-4.13" y1="26.1" x2="8.98" y2="21.86" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="#557a75"/><stop offset=".18" stopColor="#587d79"/><stop offset=".36" stopColor="#638885"/><stop offset=".56" stopColor="#75999a"/><stop offset=".75" stopColor="#8fb2b8"/><stop offset=".94" stopColor="#b0d1dd"/><stop offset="1" stopColor="#bbdcea"/>
         </linearGradient>
       </defs>
       <g data-name="圖層 1">
         <g>
-          {/* IDs for animation targets are internal to this SVG and remain as per user's code */}
           <polygon id="hexMarkSegment1" className="cls-3-light" points="36.74 24.47 36.74 31.82 18.37 42.42 13.78 39.77 32.15 29.16 32.15 27.12 36.74 24.47"/>
           <polygon id="hexMarkSegment2" className="cls-2-light" points="13.78 34.47 9.18 37.12 0 31.82 0 10.6 4.59 7.95 4.59 29.16 13.78 34.47"/>
           <polygon id="hexMarkSegment3" className="cls-3-light" points="36.74 10.6 36.74 13.98 32.15 16.63 32.15 13.26 18.37 5.3 9.18 10.6 9.18 5.3 18.37 0 36.74 10.6"/>
@@ -129,7 +56,7 @@ const AnimatedLogo: React.FC<AnimatedLogoProps> = ({ className = '', variant = '
               <path className="cls-1-light" d="M173.38,18.42v10.24h-2.6v-5.03h-10.52v5.03h-2.55v-10.24c0-5.39,3.13-8.21,7.81-8.21s7.87,2.81,7.87,8.21ZM170.77,21.36v-3.18c0-3.8-2.03-5.65-5.26-5.65s-5.26,1.85-5.26,5.65v3.18h10.52Z"/>
               <path className="cls-1-light" d="M194.95,28.65l-3.93-5.6c-.36.03-.76.05-1.15.05h-4.51v5.55h-2.61V10.42h7.11c4.74,0,7.61,2.4,7.61,6.36,0,2.81-1.46,4.84-4.01,5.76l4.32,6.12h-2.84ZM194.87,16.78c0-2.6-1.75-4.09-5.08-4.09h-4.43v8.21h4.43c3.33,0,5.08-1.51,5.08-4.12Z"/>
               <path className="cls-1-light" d="M221.59,23.73c0,3.13-2.37,4.92-6.98,4.92h-8.7V10.42h8.18c4.19,0,6.54,1.77,6.54,4.71,0,1.98-1.02,3.36-2.45,4.06,2.06.57,3.41,2.11,3.41,4.53ZM208.51,12.53v5.83h5.34c2.66,0,4.17-.99,4.17-2.92s-1.51-2.92-4.17-2.92h-5.34ZM218.96,23.52c0-2.11-1.56-3.05-4.45-3.05h-5.99v6.07h5.99c2.89,0,4.45-.91,4.45-3.02Z"/>
-              <path id="logoLetterO" className="cls-1-light" d="M238.44,29.49l-8.92-5.11s-.02-.02-.02-.04l-.03-10.28s0-.03.02-.04l8.89-5.17s.03,0,.05,0l8.92,5.11s.02.02.02.04l.03,10.28s0,.03-.02-.04l-8.89,5.17s-.03,0-.05,0ZM232.1,22.99l6.34,3.63s.03,0,.05,0l6.31-3.67s.03-.03.03-.04l-.02-7.3s0-.03-.03-.04l-6.34-3.63s-.03,0-.05,0l-6.31,3.67s-.03.03-.03-.04l.02,7.3s0,.03.03.04Z"/>
+              <path className="cls-1-light" d="M238.44,29.49l-8.92-5.11s-.02-.02-.02-.04l-.03-10.28s0-.03.02-.04l8.89-5.17s.03,0,.05,0l8.92,5.11s.02.02.02.04l.03,10.28s0,.03-.02-.04l-8.89,5.17s-.03,0-.05,0ZM232.1,22.99l6.34,3.63s.03,0,.05,0l6.31-3.67s.03-.03.03-.04l-.02-7.3s0-.03-.03-.04l-6.34-3.63s-.03,0-.05,0l-6.31,3.67s-.03.03-.03-.04l.02,7.3s0,.03.03.04Z"/>
               <path className="cls-1-light" d="M271.51,17.85v10.81h-2.58v-10.73c0-3.59-1.9-5.39-4.92-5.39-3.23,0-5.37,1.85-5.37,5.78v10.34h-2.61V10.42h2.5v2.58c1.28-1.93,3.33-2.79,5.99-2.79,4.32,0,6.98,2.68,6.98,7.63Z"/>
             </g>
             </g>
@@ -138,33 +65,24 @@ const AnimatedLogo: React.FC<AnimatedLogoProps> = ({ className = '', variant = '
     </svg>
   );
 
-  // SVG content for dark theme
   const SvgDark = () => (
-    // Using unique ID for the root SVG element
     <svg className="animate-logo" id="lingcarbon-logo-dark-instance" data-name="圖層 2" xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink" viewBox="0 0 271.51 48.81" width="100%" height="100%">
       <defs>
+         {/* Styles specific to SVG structure, like fills and strokes, remain. Animations are moved to global.css */}
         <style>{`
-          /* Dark theme specific styles, scoped to this SVG instance */
           #lingcarbon-logo-dark-instance .cls-1-dark { fill: #fafafa; } 
           #lingcarbon-logo-dark-instance .cls-1-dark, 
           #lingcarbon-logo-dark-instance .cls-2-dark, 
           #lingcarbon-logo-dark-instance .cls-3-dark { stroke-width: 0px; }
-          /* Using unique ID for the gradient */
           #lingcarbon-logo-dark-instance .cls-2-dark { fill: url(#NEW綠藍漸層_dark_ctx_animated_instance); } 
           #lingcarbon-logo-dark-instance .cls-3-dark { fill: #557a75; } 
-
-          /* Apply common animations */
-          ${commonAnimationStyle}
-          
         `}</style>
-         {/* Unique ID for the gradient definition */}
         <linearGradient id="NEW綠藍漸層_dark_ctx_animated_instance" x1="-4.13" y1="26.1" x2="8.98" y2="21.86" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="#557a75"/><stop offset=".18" stopColor="#587d79"/><stop offset=".36" stopColor="#638885"/><stop offset=".56" stopColor="#75999a"/><stop offset=".75" stopColor="#8fb2b8"/><stop offset=".94" stopColor="#b0d1dd"/><stop offset="1" stopColor="#bbdcea"/>
         </linearGradient>
       </defs>
        <g data-name="圖層 1">
           <g>
-            {/* IDs for animation targets are internal to this SVG and remain as per user's code */}
             <polygon id="hexMarkSegment1" className="cls-3-dark" points="36.74 24.47 36.74 31.82 18.37 42.42 13.78 39.77 32.15 29.16 32.15 27.12 36.74 24.47"/>
             <polygon id="hexMarkSegment2" className="cls-2-dark" points="13.78 34.47 9.18 37.12 0 31.82 0 10.6 4.59 7.95 4.59 29.16 13.78 34.47"/>
             <polygon id="hexMarkSegment3" className="cls-3-dark" points="36.74 10.6 36.74 13.98 32.15 16.63 32.15 13.26 18.37 5.3 9.18 10.6 9.18 5.3 18.37 0 36.74 10.6"/>
@@ -184,7 +102,7 @@ const AnimatedLogo: React.FC<AnimatedLogoProps> = ({ className = '', variant = '
                 <path className="cls-1-dark" d="M173.38,18.42v10.24h-2.6v-5.03h-10.52v5.03h-2.55v-10.24c0-5.39,3.13-8.21,7.81-8.21s7.87,2.81,7.87,8.21ZM170.77,21.36v-3.18c0-3.8-2.03-5.65-5.26-5.65s-5.26,1.85-5.26,5.65v3.18h10.52Z"/>
                 <path className="cls-1-dark" d="M194.95,28.65l-3.93-5.6c-.36.03-.76.05-1.15.05h-4.51v5.55h-2.61V10.42h7.11c4.74,0,7.61,2.4,7.61,6.36,0,2.81-1.46,4.84-4.01,5.76l4.32,6.12h-2.84ZM194.87,16.78c0-2.6-1.75-4.09-5.08-4.09h-4.43v8.21h4.43c3.33,0,5.08-1.51,5.08-4.12Z"/>
                 <path className="cls-1-dark" d="M221.59,23.73c0,3.13-2.37,4.92-6.98,4.92h-8.7V10.42h8.18c4.19,0,6.54,1.77,6.54,4.71,0,1.98-1.02,3.36-2.45,4.06,2.06.57,3.41,2.11,3.41,4.53ZM208.51,12.53v5.83h5.34c2.66,0,4.17-.99,4.17-2.92s-1.51-2.92-4.17-2.92h-5.34ZM218.96,23.52c0-2.11-1.56-3.05-4.45-3.05h-5.99v6.07h5.99c2.89,0,4.45-.91,4.45-3.02Z"/>
-                <path id="logoLetterO" className="cls-1-dark" d="M238.44,29.49l-8.92-5.11s-.02-.02-.02-.04l-.03-10.28s0-.03.02-.04l8.89-5.17s.03,0,.05,0l8.92,5.11s.02.02.02.04l.03,10.28s0,.03-.02-.04l-8.89,5.17s-.03,0-.05,0ZM232.1,22.99l6.34,3.63s.03,0,.05,0l6.31-3.67s.03-.03.03-.04l-.02-7.3s0-.03-.03-.04l-6.34-3.63s-.03,0-.05,0l-6.31,3.67s-.03.03-.03-.04l.02,7.3s0,.03.03.04Z"/>
+                <path className="cls-1-dark" d="M238.44,29.49l-8.92-5.11s-.02-.02-.02-.04l-.03-10.28s0-.03.02-.04l8.89-5.17s.03,0,.05,0l8.92,5.11s.02.02.02.04l.03,10.28s0,.03-.02-.04l-8.89,5.17s-.03,0-.05,0ZM232.1,22.99l6.34,3.63s.03,0,.05,0l6.31-3.67s.03-.03.03-.04l-.02-7.3s0-.03-.03-.04l-6.34-3.63s-.03,0-.05,0l-6.31,3.67s-.03.03-.03-.04l.02,7.3s0,.03.03.04Z"/>
                 <path className="cls-1-dark" d="M271.51,17.85v10.81h-2.58v-10.73c0-3.59-1.9-5.39-4.92-5.39-3.23,0-5.37,1.85-5.37,5.78v10.34h-2.61V10.42h2.5v2.58c1.28-1.93,3.33-2.79,5.99-2.79,4.32,0,6.98,2.68,6.98,7.63Z"/>
               </g>
             </g>
@@ -194,7 +112,8 @@ const AnimatedLogo: React.FC<AnimatedLogoProps> = ({ className = '', variant = '
   );
 
   if (!isMounted) {
-    return <div className={`inline-block ${logoBaseClass} ${className}`} style={{ visibility: 'hidden' }}></div>;
+    // Return a placeholder div that occupies the same space to minimize layout shift
+    return <div className={`inline-block ${logoBaseClass} ${className}`} style={{ visibility: 'hidden' }} aria-hidden="true"></div>;
   }
 
   return (
