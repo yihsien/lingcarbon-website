@@ -115,7 +115,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                         ref={servicesDropdownRef}
                         className="absolute top-full left-1/2 -translate-x-1/2 w-screen max-w-md lg:max-w-2xl xl:max-w-6xl"
                       >
-                        <div className="overflow-hidden rounded-2xl shadow-lg ring-1 ring-black/5 dark:ring-white/10 bg-white dark:bg-slate-800 pt-6 mt-4">
+                        <div className="overflow-hidden rounded-2xl shadow-lg ring-1 ring-black/5 dark:ring-white/10 bg-slate-200 dark:bg-slate-800 pt-6 mt-4">
                           <div className="relative grid gap-x-6 gap-y-3 px-5 pb-4 sm:px-8 sm:pb-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
                             {item.dropdownItems.map((subItem) => {
                               const Icon = subItem.icon;
@@ -124,7 +124,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                                   key={subItem.name}
                                   href={subItem.href}
                                   onClick={() => setIsServicesDropdownOpen(false)}
-                                  className="flex items-start rounded-lg p-4 hover:bg-slate-50 dark:hover:bg-slate-700 transition ease-in-out duration-150"
+                                  className="flex items-start rounded-lg p-4 hover:bg-slate-300/30 dark:hover:bg-slate-700 transition ease-in-out duration-150"
                                 >
                                   <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--color-companyBlue-light)] text-[var(--color-companyBlue)] sm:h-12 sm:w-12">
                                     <Icon aria-hidden="true" className="size-6" />
@@ -137,7 +137,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                               );
                             })}
                           </div>
-                          <div className={`bg-slate-50 dark:bg-slate-800 px-5 py-3 sm:px-8 sm:py-3 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center ${theme === 'light' ? 'justify-between' : 'justify-center sm:justify-between'}`}>
+                          <div className={`bg-slate-200 dark:bg-slate-800 px-5 py-3 sm:px-8 sm:py-3 border-t border-slate-400/20 dark:border-slate-700 flex flex-col sm:flex-row items-center ${theme === 'light' ? 'justify-between' : 'justify-center sm:justify-between'}`}>
                             <div>
                               <h3 className="text-sm font-semibold leading-6 text-slate-900 dark:text-slate-200">{t.dropdownCustomSolutionsTitle}</h3>
                               <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">{t.dropdownCustomSolutionsDesc}</p>

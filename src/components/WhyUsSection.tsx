@@ -27,14 +27,14 @@ const WhyUsSection: React.FC = () => {
   const C =
     theme === 'dark'
       ? {
-          bg: 'dark:bg-slate-800/60',
+          bg: 'dark:bg-slate-800/50',
           text: 'text-slate-100',
           sub: 'text-slate-300',
           accent: 'text-[var(--color-sky-400)]',
           border: 'dark:border-gray-700/50',
         }
       : {
-          bg: 'bg-white/80',
+          bg: 'bg-slate-200/40',
           text: 'text-slate-900',
           sub: 'text-slate-600',
           accent: 'text-[var(--color-companyBlue)]',

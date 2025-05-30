@@ -16,27 +16,27 @@ const servicePalette: Record<string, { icon: string; ringColor: string; glow: st
   companyBlue: {
     icon: 'text-[var(--color-companyBlue)]',
     ringColor: 'ring-[var(--color-companyBlue)]',
-    glow: 'hover:shadow-[0_8px_24px_var(--color-companyBlue-light)] dark:hover:shadow-[0_8px_24px_#003a40]'
+    glow: 'hover:shadow-[0_8px_24px_var(--color-companyBlue)] dark:hover:shadow-[0_8px_24px_var(--color-companyBlue)]'
   },
   purple: {
     icon: 'text-[var(--color-purple-600)] dark:text-[var(--color-purple-400)]',
     ringColor: 'ring-[var(--color-purple-500)]',
-    glow: 'hover:shadow-[0_8px_24px_var(--color-purple-400)] dark:hover:shadow-[0_8px_24px_var(--color-purple-700)]'
+    glow: 'hover:shadow-[0_8px_24px_var(--color-purple-400)] dark:hover:shadow-[0_8px_24px_var(--color-purple-400)]'
   },
   green: {
     icon: 'text-[var(--color-green-600)] dark:text-[var(--color-green-400)]',
     ringColor: 'ring-[var(--color-green-500)]',
-    glow: 'hover:shadow-[0_8px_24px_var(--color-green-400)] dark:hover:shadow-[0_8px_24px_var(--color-green-700)]'
+    glow: 'hover:shadow-[0_8px_24px_var(--color-green-400)] dark:hover:shadow-[0_8px_24px_var(--color-green-400)]'
   },
   yellow: {
     icon: 'text-[var(--color-yellow-500)] dark:text-[var(--color-yellow-400)]',
     ringColor: 'ring-[var(--color-yellow-500)]',
-    glow: 'hover:shadow-[0_8px_24px_var(--color-yellow-400)] dark:hover:shadow-[0_8px_24px_var(--color-yellow-700)]'
+    glow: 'hover:shadow-[0_8px_24px_var(--color-yellow-400)] dark:hover:shadow-[0_8px_24px_var(--color-yellow-400)]'
   },
   pink: {
     icon: 'text-[var(--color-pink-500)] dark:text-[var(--color-pink-400)]',
     ringColor: 'ring-[var(--color-pink-500)]',
-    glow: 'hover:shadow-[0_8px_24px_var(--color-pink-400)] dark:hover:shadow-[0_8px_24px_var(--color-pink-700)]'
+    glow: 'hover:shadow-[0_8px_24px_var(--color-pink-400)] dark:hover:shadow-[0_8px_24px_var(--color-pink-400)]'
   }
 };
 
@@ -101,7 +101,19 @@ const FeaturesSection: React.FC = () => {
         </div>
 
         <div className="relative" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-          <div ref={railRef} className="flex overflow-x-hidden gap-4 px-4 sm:px-6 md:px-8 pb-2 select-none">
+        <div
+        ref={railRef}
+        className="
+            flex
+            overflow-x-hidden        /* hide the horizontal over-scroll */
+            overflow-y-visible       /* ✅ allow the card to rise above */
+            gap-4
+            pt-4                     /* ✅ head-room for the lift */
+            px-4 sm:px-6 md:px-8
+            pb-2
+            select-none
+        "
+        >
             {cards.map((s, i) => {
               const Icon = s.icon;
               const pal  = servicePalette[s.colour];
@@ -109,8 +121,8 @@ const FeaturesSection: React.FC = () => {
                 <div key={`${s.id}-${i}`} className="flex-shrink-0 w-[90%] sm:w-[80%] md:w-[48%] lg:w-[32%] xl:w-[30%]" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
                   <div
                     className={`group relative h-full rounded-xl
-                      bg-white/90 dark:bg-gray-800/70 backdrop-blur-md
-                      border border-slate-200/60 dark:border-gray-700/50
+                      bg-slate-200/30 dark:bg-gray-800/70 backdrop-blur-md
+                      border border-slate-200/300 dark:border-gray-700/50
                       px-6 py-8 shadow transition-all duration-300
                       hover:-translate-y-3 ${pal.glow}
                       ring-0 ring-transparent ${pal.ringColor}
