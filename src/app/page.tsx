@@ -45,6 +45,7 @@ export default function HomePage() {
           <FeaturesSection />
           <WhyUsSection />
         </main>
+        
         <Footer /> 
         <ContactModal 
           isOpen={isContactModalOpen} 

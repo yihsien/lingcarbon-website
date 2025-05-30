@@ -27,34 +27,32 @@ const Footer: React.FC = () => {
         { name: t.footerProductsLink2, href: "#footprint-calculation" },
         { name: t.footerProductsLink3, href: "#neutral-implementation" },
         { name: t.footerProductsLink4, href: "#consulting" },
+        { name: t.footerProductsLink5, href: "#sbt-initiatives" },
       ] 
     },
     { 
       title: t.footerResources, 
       links: [
-        { name: t.footerResourcesLink1, href: "#methodologies" },
-        { name: t.footerResourcesLink2, href: "#case-studies" },
-        { name: t.footerResourcesLink3, href: "#blog" },
-        { name: t.footerResourcesLink4, href: "#faqs" },
+        { name: t.footerResourcesLink1, href: "#latest-news" },
+        { name: t.footerResourcesLink2, href: "#opinions" },
+        { name: t.footerResourcesLink3, href: "#faqs" },
       ] 
     },
     { 
       title: t.footerCompany, 
       links: [
         { name: t.footerCompanyLink1, href: "#about-us" },
-        { name: t.footerCompanyLink2, href: "#our-mission" },
-        { name: t.footerCompanyLink3, href: "#careers" },
-        { name: t.footerCompanyLink4, href: "#contact" },
+        { name: t.footerCompanyLink2, href: "#our-team" },
       ] 
     },
-    { 
-      title: t.footerLegal, 
-      links: [
-        { name: t.footerLegalLink1, href: "#privacy-policy" },
-        { name: t.footerLegalLink2, href: "#terms-of-service" },
-        { name: t.footerLegalLink3, href: "#cookie-policy" },
-      ] 
-    }
+//   { 
+//      title: t.footerLegal, 
+//      links: [
+//        { name: t.footerLegalLink1, href: "#privacy-policy" },
+//        { name: t.footerLegalLink2, href: "#terms-of-service" },
+//        { name: t.footerLegalLink3, href: "#cookie-policy" },
+//      ] 
+//    }
   ];
 
   const sectionBgClass = theme === 'dark' ? 'dark:bg-black' : 'bg-transparent';
@@ -62,8 +60,8 @@ const Footer: React.FC = () => {
   return (
     <footer className={`border-t border-slate-400/20 dark:border-gray-700/30 text-slate-700 dark:text-slate-300 py-16 relative z-10 ${sectionBgClass}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 mb-12">
-          <div className="col-span-2 lg:col-span-1 mb-8 lg:mb-0">
+        <div className="grid grid-cols-2 md:grid-cols-6 lg:grid-cols-6 gap-8 mb-12">
+          <div className="col-span-2 md:col-span-2 lg:col-span-2 mb-8 lg:mb-0">
             <Link href="/" className="flex items-center space-x-2 text-xl font-bold mb-4">
               <AnimatedLogo variant="footer" />
             </Link>

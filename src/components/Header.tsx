@@ -64,7 +64,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
       name: t.navServices,
       href: '#features', // In Next.js, you might link to a page like /services
       dropdownItems: [
-        { name: t.navServiceGHG, href: '#ghg-inventory', icon: ClipboardList, description: t.navServiceGHGDesc },
+        { name: t.navServiceGHG, href: '/services#ghg-inventory', icon: ClipboardList, description: t.navServiceGHGDesc },
         { name: t.navServiceFootprinting, href: '#footprinting', icon: Calculator, description: t.navServiceFootprintingDesc },
         { name: t.navServiceStrategy, href: '#carbon-neutral-strategy', icon: Leaf, description: t.navServiceStrategyDesc },
         { name: t.navServiceSBTi, href: '#sbti-target-setting', icon: Target, description: t.navServiceSBTiDesc },
@@ -85,7 +85,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <Link href="/" className="flex items-center space-x-2">
-            <AnimatedLogo
+                        <AnimatedLogo
               className="h-8 md:h-9 lingcarbon-logo-main animate-logo"
               variant="main"
             />

@@ -8,61 +8,60 @@ export const translations = {
   en: {
     navServices: "Services",
     navServiceGHG: "GHG Inventory",
-    navServiceGHGDesc: "Comprehensive greenhouse gas accounting and reporting.",
+    navServiceGHGDesc: "Build your carbon strategy on solid ground. Our expert GHG inventory service, aligned with ISO 14064-1 and the GHG Protocol, covers Scopes 1–3 with precision — from boundary setting to emissions calculation. Stay compliant, uncover insights, and take the first step toward a credible, future-ready net-zero journey.",
     navServiceFootprinting: "CFP Calculation", 
-    navServiceFootprintingDesc: "Detailed Carbon Footprint of Product analysis.", 
+    navServiceFootprintingDesc: "Product carbon footprints affect both your environmental impact and your brand. We calculate CFPs under ISO 14067, covering the full product life cycle — from raw materials to end-of-life. Identify emission hotspots, improve efficiency, and meet growing demands from supply chains and consumers with clear, data-backed insights.",
     navServiceStrategy: "Carbon Neutral Strategy",
-    navServiceStrategyDesc: "Develop your roadmap to net-zero emissions.",
+    navServiceStrategyDesc: "Carbon neutrality is more than offsets — it’s a strategy. We help companies design actionable plans under ISO 14068, covering baseline assessment, reduction roadmap, offset planning, and verification readiness. Achieve compliance, build trust, and lead on climate with a credible, science-aligned path to net zero.",
     navServiceSBTi: "SBTi Target Setting",
-    navServiceSBTiDesc: "Align your climate goals with science-based targets.",
+    navServiceSBTiDesc: `Science-based targets (SBTs) align your climate goals with global standards. We help companies set targets under the SBTi framework and 1.5°C pathway — from baseline assessment to validation prep. SBTs build trust, boost visibility on platforms like CDP and UNGC, and drive credible, science-backed climate action.`,
     navServiceRatings: "ESG Ratings & Disclosures", 
-    navServiceRatingsDesc: "Improve ESG performance and reporting (e.g., CDP, Ecovadis).", 
+    navServiceRatingsDesc: `ESG ratings matter. We help companies navigate frameworks like CDP, EcoVadis, DJSI, and UNGC with tailored support — including data gap analysis, indicator mapping, materiality assessment, and report preparation. Strong ESG disclosures boost transparency, stakeholder trust, and performance in global sustainability benchmarks.
+`, 
     navAbout: "About",
     navResources: "Resources",
     navContact: "Contact Us",
     dropdownCustomSolutionsTitle: "Custom Solutions", 
     dropdownCustomSolutionsDesc: "Please contact us for custom carbon solutions tailored to your business needs.", 
-    heroTitle1: "Pioneering Sustainable",
-    heroTitle2: "Carbon Solutions",
-    heroSubtitle: "LINGCARBON empowers organizations with cutting-edge services for carbon accounting, footprint calculation, and achieving carbon neutrality.",
-    heroCTA: "Contact Us", 
-    servicesTitle: "Our Core Services",
-    servicesSubtitle: "Driving sustainability through innovative carbon management solutions.",
-    whyUsTitle: "The LINGCARBON Advantage",
-    whyUsSubtitle: "Partner with us for unparalleled expertise and tailored carbon management strategies.",
+    heroTitle1: "Your Carbon Advisor.",
+    heroTitle2: "From Start to Zero.",
+    heroSubtitle: "Data-driven. Science-backed. Net-Zero ready.",
+    heroCTA: "Talk to Our Experts", 
+    servicesTitle: "Comprehensive Carbon Solutions",
+    servicesSubtitle: "From Strategy to Execution — Complete Carbon Services at Every Stage.",
+    whyUsTitle: "The LINGCARBON Difference",
+    whyUsSubtitle: "We turn complexity into clarity — with strategies that align with business, compliance, and climate goals.",
     advantage1Title: "Tailored Carbon Management Solutions",
     advantage1Desc: "With over a decade of expertise in GHG inventories, carbon footprint calculation, and carbon reduction strategies, our team crafts solutions tailored to the operational realities and growth stage of each organization.",
     advantage2Title: "Industry-Specific Insight Across Sectors",
-    advantage2Desc: "Deep understanding across hospitality, manufacturing, finance, logistics, and services. Our cross-industry experience allows us to quickly grasp the unique operating models and emissions profiles of different sectors, delivering carbon strategies with real business relevance.",
-    advantage3Title: "Integrated Planning and Verification Expertise",
-    advantage3Desc: "Expertise in both carbon inventory planning and third-party verification. With experience on both sides—implementation and assurance—we ensure carbon strategies are not only practical and operationally sound but also fully aligned with future verification requirements.",
+    advantage2Desc: "From hospitality and manufacturing to finance, logistics, and services — we speak your industry’s language. Our team brings deep domain knowledge and hands-on experience, enabling us to decode complex operations and emissions profiles, and craft carbon strategies that make business sense and drive real-world results.",
+    advantage3Title: "Verification-Ready Carbon Strategy",
+    advantage3Desc: "With experience on both the execution and assurance side, we help businesses design carbon inventory processes and reports that are operationally effective, audit-ready, and aligned with future verification requirements and stakeholder expectations.",
     advantage4Title: "Technology-Driven Efficiency",
-    advantage4Desc: "Data automation and digital tools to enhance accuracy and decision-making. Combining software engineering with carbon expertise, we help businesses streamline data workflows, increase accuracy, and enable smarter, real-time climate decision-making through digital tools.",
+    advantage4Desc: "We integrate software engineering, data science, and deep carbon expertise to turn complex data into actionable insights. From automated workflows to real-time dashboards, we help businesses boost accuracy, simplify reporting, and make faster, smarter climate decisions.",
     advantage5Title: "Capacity Building and Carbon Literacy",
-    advantage5Desc: "Empowering internal teams through training and co-creation. We don’t just deliver reports—we empower your teams. By offering hands-on guidance, internal training, and co-working models, we help organizations build lasting in-house carbon management capacity.",
-    footerSlogan: "Leading the way in sustainable carbon solutions and environmental stewardship.",
+    advantage5Desc: "We help your teams do more than comply — we help them lead. Through hands-on training, collaborative implementation, and tailored knowledge transfer, we build long-term carbon capabilities inside your organization, making sustainability part of your core operations.",
+    footerSlogan: "Where carbon action meets business growth.",
     footerProducts: "Services", 
-    footerProductsLink1: "Carbon Accounting",
-    footerProductsLink2: "Footprint Calculation",
-    footerProductsLink3: "Neutral Implementation",
-    footerProductsLink4: "Consulting",
+    footerProductsLink1: "GHG Inventory",
+    footerProductsLink2: "CFP Calculation",
+    footerProductsLink3: "Carbon Neutral Strategy",
+    footerProductsLink4: "SBTi Target Setting",
+    footerProductsLink5: "ESG Ratings & Disclosures",
     footerResources: "Resources",
-    footerResourcesLink1: "Methodologies",
-    footerResourcesLink2: "Case Studies",
-    footerResourcesLink3: "Blog",
-    footerResourcesLink4: "FAQs",
+    footerResourcesLink1: "Latest News",
+    footerResourcesLink2: "Opinions",
+    footerResourcesLink3: "FAQs",
     footerCompany: "Company",
-    footerCompanyLink1: "About Us",
-    footerCompanyLink2: "Our Mission",
-    footerCompanyLink3: "Careers",
-    footerCompanyLink4: "Contact",
+    footerCompanyLink1: "Our Team",
+    footerCompanyLink2: "Careers",
     footerLegal: "Legal",
     footerLegalLink1: "Privacy Policy",
     footerLegalLink2: "Terms of Service",
     footerLegalLink3: "Cookie Policy",
-    footerRights: "LINGCARBON. All rights reserved. Committed to a greener future.",
+    footerRights: "LINGCARBON. All rights reserved.",
     contactModalTitle: "Get in touch",
-    contactModalSubtitle: "We're here to help and answer any question you might have. We look forward to hearing from you.",
+    contactModalSubtitle: "Let’s build your carbon advantage together and drive sustainable business growth.",
     contactOfficeAddress: "168, Section 3, Nanjing East Road, Zhongshan District, Taipei City",
     contactViewOnMap: "View on Google Maps",
     contactCallUs: "Call Us",
@@ -79,63 +78,62 @@ export const translations = {
     contactFormError: "Something went wrong. Please try again later.",
   },
   zh: { 
-    navServices: "服务项目",
-    navServiceGHG: "温室气体清单",
-    navServiceGHGDesc: "全面温室气体核算与报告。",
-    navServiceFootprinting: "产品碳足迹 (CFP) 计算", 
-    navServiceFootprintingDesc: "详细的产品碳足迹分析。", 
-    navServiceStrategy: "碳中和战略",
-    navServiceStrategyDesc: "制定您的净零排放路线图。",
-    navServiceSBTi: "SBTi 目标设定",
-    navServiceSBTiDesc: "使您的气候目标与科学碳目标保持一致。",
-    navServiceRatings: "ESG 评级与披露", 
-    navServiceRatingsDesc: "提升您的 ESG 表现与报告（例如 CDP、Ecovadis）。", 
-    navAbout: "关于我们",
-    navResources: "资源中心",
-    navContact: "联系我们",
-    dropdownCustomSolutionsTitle: "定制化解决方案", 
-    dropdownCustomSolutionsDesc: "请联系我们，获取为您业务量身定制的碳解决方案。", 
-    heroTitle1: "引领可持续",
-    heroTitle2: "碳解决方案",
-    heroSubtitle: "LINGCARBON 助力企业利用尖端服务进行碳核算、碳足迹计算并实现碳中和。",
-    heroCTA: "联系我们", 
-    servicesTitle: "我们的核心服务",
-    servicesSubtitle: "通过创新的碳管理解决方案推动可持续发展。",
-    whyUsTitle: "LINGCARBON 的优势",
-    whyUsSubtitle: "与我们合作，获取无与伦比的专业知识和量身定制的碳管理战略。",
+    navServices: "服務項目",
+    navServiceGHG: "溫室氣體盤查",
+    navServiceGHGDesc: "為碳管理打下堅實基礎，就從盤查開始。我們依據 ISO 14064-1 與 GHG Protocol 提供全方位的溫室氣體盤查服務，涵蓋邊界設定、排放源鑑別、數據蒐集與範疇一至三的排放計算，協助企業掌握碳風險、因應法規，邁向淨零目標。",
+    navServiceFootprinting: "產品碳足跡計算", 
+    navServiceFootprintingDesc: "產品的碳足跡，不只影響環境，更攸關品牌競爭力。我們依據 ISO 14067，協助企業釐清產品生命週期中各階段的碳排放，從原料、生產、運輸到最終處置皆涵蓋在內。透過碳足跡量化，企業能找出減碳熱點、優化設計與流程，同時回應供應鏈與消費市場日益高漲的低碳期待。",
+    navServiceStrategy: "碳中和策略",
+    navServiceStrategyDesc: "碳中和不只是抵換，更需要明確策略。我們依據 ISO 14068，協助企業制定可執行的碳中和計畫，內容涵蓋基準盤查、減量路徑、抵換規劃與查證準備。完善的策略有助符合法規、凝聚利害關係人共識，並強化品牌信任與氣候領導力。",
+    navServiceSBTi: "SBTi 目標設定",
+    navServiceSBTiDesc: `依循科學制定減碳目標，是企業邁向淨零的關鍵一步。我們協助企業依據 SBTi 架構與 1.5°C 路徑，完成碳盤查、目標建模、驗證準備與落地規劃。導入 SBT 可提升氣候治理、強化利害關係人信任，並獲得 CDP 與 UN Global Compact 等平台的國際曝光。`,
+    navServiceRatings: "ESG 評級與揭露", 
+    navServiceRatingsDesc: `ESG 表現正成為投資人與合作夥伴關注焦點。我們協助企業掌握 CDP、Ecovadis、DJSI 與 UN Global Compact 等主要評級與揭露架構，提供資料落差分析、指標對應、重大性盤點與報告協作支援，協助企業強化揭露透明度與國際永續競爭力。
+`, 
+    navAbout: "關於我們",
+    navResources: "零碳資源",
+    navContact: "與我們聯絡",
+    dropdownCustomSolutionsTitle: "客製化碳管理方案",
+    dropdownCustomSolutionsDesc: "每個企業的碳管理需求都不同。聯絡我們，讓我們為您打造專屬的解決方案。",
+    heroTitle1: "全面的碳管理團隊",
+    heroTitle2: "陪你從起步到走向淨零",
+    heroSubtitle: "以科學與數據為基礎，提供從盤查到碳中和的客製化解決方案。",
+    heroCTA: "取得專屬碳管理建議", 
+    servicesTitle: "全方位碳管理服務",
+    servicesSubtitle: "從策略擬定到實務執行，提供碳管理每一階段的完整服務。",
+    whyUsTitle: "零碳科技讓碳管理更有方向",
+    whyUsSubtitle: "從複雜到清晰，我們為你打造兼顧營運、法規與氣候目標的碳管理策略。",
     advantage1Title: "量身定制的碳管理解决方案",
-    advantage1Desc: "凭借十多年在温室气体清单、碳足迹计算和碳减排战略方面的专业知识，我们的团队为每个组织的运营现实和发展阶段量身打造解决方案。",
-    advantage2Title: "跨行业的深刻洞察",
-    advantage2Desc: "深刻理解酒店、制造、金融、物流和服务等多个行业。我们跨行业的经验使我们能够快速掌握不同行业的独特运营模式和排放特征，提供具有实际商业意义的碳战略。",
-    advantage3Title: "整合规划与核查专业知识",
-    advantage3Desc: "在碳清单规划和第三方核查两方面均拥有专业知识。凭借在实施和保障两方面的经验，我们确保碳战略不仅实用且运营稳健，而且完全符合未来的核查要求。",
-    advantage4Title: "技术驱动的效率",
-    advantage4Desc: "通过数据自动化和数字工具提高准确性并辅助决策。我们将软件工程与碳专业知识相结合，帮助企业简化数据工作流程，提高准确性，并通过数字工具实现更智能、实时的气候决策。",
-    advantage5Title: "能力建设与碳素养提升",
-    advantage5Desc: "通过培训和共同创造赋能内部团队。我们不仅仅交付报告——我们赋能您的团队。通过提供实践指导、内部培训和共同工作模式，我们帮助组织建立持久的内部碳管理能力。",
-    footerSlogan: "引领可持续碳解决方案和环境管理。",
-    footerProducts: "服务项目",
-    footerProductsLink1: "碳核算",
-    footerProductsLink2: "碳足迹计算",
-    footerProductsLink3: "碳中和实施",
-    footerProductsLink4: "咨询服务",
-    footerResources: "资源中心",
-    footerResourcesLink1: "方法论",
-    footerResourcesLink2: "案例研究",
-    footerResourcesLink3: "博客",
-    footerResourcesLink4: "常见问题",
-    footerCompany: "关于公司",
-    footerCompanyLink1: "关于我们",
-    footerCompanyLink2: "我们的使命",
-    footerCompanyLink3: "加入我们",
-    footerCompanyLink4: "联系方式",
-    footerLegal: "法律条款",
-    footerLegalLink1: "隐私政策",
-    footerLegalLink2: "服务条款",
+    advantage1Desc: "累積超過十年的實務經驗，我們團隊提供貼近企業營運實況與成長節奏的碳管理策略，從溫室氣體盤查到長期減量規劃，協助企業創造具體成效。",
+    advantage2Title: "跨產業的實務經驗",
+    advantage2Desc: "從旅宿、製造到金融與物流，我們了解每個產業在營運與碳排上的挑戰與特色。豐富的跨領域經驗讓我們能快速切入重點，提供真正符合產業情境、能落地執行的碳管理方案。",
+    advantage3Title: "符合實務與查證需求的碳管理設計",
+    advantage3Desc: "我們具備從企業端執行到第三方查證的實務經驗，協助建構清晰可行的盤查流程與報告架構，讓碳管理成果不僅符合營運需求，更能通過查證、回應未來法規與外部關注。",
+    advantage4Title: "數據 × 科技 × 減碳效率",
+    advantage4Desc: "結合碳管理專業、資料科學與軟體工程能力，我們協助企業導入自動化資料流程與即時儀表板，提升數據準確性、簡化報告製作，並強化決策效率與應變能力。",
+    advantage5Title: "培育企業自有碳管理能力",
+    advantage5Desc: "協助企業建立內部碳管理能力，不只是因應要求，更能主動領導。透過實務訓練、協作導入與知識轉移，我們協助組織將永續理念融入日常營運，打造可長期運作的碳管理內功。",
+    footerSlogan: "在碳管理中創造企業競爭力",
+    footerProducts: "服務項目",
+    footerProductsLink1: "溫室氣體盤查",
+    footerProductsLink2: "產品碳足跡計算",
+    footerProductsLink3: "碳中和策略",
+    footerProductsLink4: "SBTi 目標設定",
+    footerProductsLink5: "ESG 評級與揭露",
+    footerResources: "零碳資源",
+    footerResourcesLink1: "最新消息",
+    footerResourcesLink2: "零碳觀點",
+    footerResourcesLink3: "常見問題",
+    footerCompany: "關於零碳",
+    footerCompanyLink1: "核心團隊",
+    footerCompanyLink2: "加入我們",
+    footerLegal: "法律條款",
+    footerLegalLink1: "隱私政策",
+    footerLegalLink2: "服務條款",
     footerLegalLink3: "Cookie 政策",
-    footerRights: "LINGCARBON. 版权所有。致力于绿色未来。",
-    contactModalTitle: "联系我们",
-    contactModalSubtitle: "我们随时准备提供帮助并回答您的任何问题。期待您的来信。",
+    footerRights: "LINGCARBON. 版權所有。",
+    contactModalTitle: "聯絡我們",
+    contactModalSubtitle: "讓我們攜手為您的企業打造碳管理優勢，共創永續競爭力。",
     contactOfficeAddress: "台北市中山區南京東路三段168號",
     contactViewOnMap: "在谷歌地图上查看",
     contactCallUs: "致电我们",
@@ -144,64 +142,70 @@ export const translations = {
     contactEmailAddress: "contact@lingcarbon.com",
     contactFirstNameLabel: "名字",
     contactLastNameLabel: "姓氏",
-    contactEmailLabel: "邮箱",
-    contactPhoneNumberLabel: "电话号码",
+    contactEmailLabel: "Email",
+    contactPhoneNumberLabel: "電話",
     contactMessageLabel: "留言",
-    contactSendMessageButton: "发送消息",
-    contactFormSuccess: "消息发送成功！我们会尽快与您联系。",
-    contactFormError: "出错了，请稍后再试。",
+    contactSendMessageButton: "送出訊息",
+    contactFormSuccess: "謝謝！我們會儘快和您聯絡。",
+    contactFormError: "出錯了，請稍後再試。",
   }
 };
 
-type Language = 'en' | 'zh';
-type Translations = typeof translations.en; // Use 'en' as the shape for all translations
+type Lang = 'en' | 'zh';
+type T    = typeof translations.en;
 
-interface LanguageContextType {
-  language: Language;
-  setLanguage: (language: Language) => void;
-  t: Translations;
+interface Ctx {
+  language: Lang;
+  setLanguage: (l: Lang) => void;
+  t: T;
 }
 
-export const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+const LanguageContext = createContext<Ctx | undefined>(undefined);
 
-export function LanguageProvider({ children, defaultLanguage = 'en', storageKey = 'app-lang' }: {
+interface ProviderProps {
   children: ReactNode;
-  defaultLanguage?: Language;
+  defaultLanguage?: Lang;     // deterministic value for SSR
   storageKey?: string;
-}) {
-  const [language, setLanguageState] = useState<Language>(() => {
-     if (typeof window !== 'undefined') {
-      return (localStorage.getItem(storageKey) as Language) || defaultLanguage;
-    }
-    return defaultLanguage;
-  });
+}
 
+/* ───────────────────────────────  provider  ──────────────────────────────────── */
+export function LanguageProvider({
+  children,
+  defaultLanguage = 'en',
+  storageKey = 'app-lang',
+}: ProviderProps) {
+  /* 1️⃣  identical value on server and first client render */
+  const [language, setLanguage] = useState<Lang>(defaultLanguage);
+
+  /* 2️⃣  after hydration, read saved value once */
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-        localStorage.setItem(storageKey, language);
-        document.documentElement.lang = language;
-    }
+    const saved =
+      (typeof window !== 'undefined'
+        ? (localStorage.getItem(storageKey) as Lang | null)
+        : null) ?? defaultLanguage;
+
+    if (saved !== language) setLanguage(saved);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /* 3️⃣  whenever `language` changes, sync <html lang> + localStorage */
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    document.documentElement.lang = language;
+    localStorage.setItem(storageKey, language);
   }, [language, storageKey]);
 
-  const setLanguage = (newLanguage: Language) => {
-    setLanguageState(newLanguage);
-  };
-  
-  const t = translations[language];
-
-  const value = {
-    language,
-    setLanguage,
-    t,
-  };
-
-  return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
+  return (
+    <LanguageContext.Provider
+      value={{ language, setLanguage, t: translations[language] }}
+    >
+      {children}
+    </LanguageContext.Provider>
+  );
 }
 
 export const useLanguage = () => {
-  const context = useContext(LanguageContext);
-  if (context === undefined) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
-  }
-  return context;
+  const ctx = useContext(LanguageContext);
+  if (!ctx) throw new Error('useLanguage must be used within LanguageProvider');
+  return ctx;
 };

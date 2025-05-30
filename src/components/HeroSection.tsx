@@ -38,7 +38,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
 <button
   onClick={onContactClick}
   className={`
-    relative group w-[224px] h-[54px] rounded-[27px]
+    relative group w-[260px] h-[54px] rounded-[27px]
     font-semibold text-lg flex items-center justify-center
     overflow-hidden transition-transform duration-300
     hover:scale-105 focus:outline-none

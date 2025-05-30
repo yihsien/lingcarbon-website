@@ -1,142 +1,138 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { ChevronLeft, ChevronRight, ClipboardList, Calculator, Leaf, Target, Award } from 'lucide-react';
-import { useLanguage, translations } from './LanguageProvider'; // Assuming LanguageProvider is in the same folder or adjust path
+import React, { useEffect, useRef } from 'react';
+import {
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  Calculator,
+  Leaf,
+  Target,
+  Award
+} from 'lucide-react';
+import { useLanguage, translations } from './LanguageProvider';
 
-// Define color classes for services, matching the structure in the main App component
-const serviceColorClasses: { [key: string]: { iconText: string; borderHover: string; shadowHover: string } } = {
-  companyBlue: { iconText: "text-[var(--color-companyBlue)]", borderHover: "hover:border-[var(--color-companyBlue)]/50", shadowHover: "hover:shadow-[var(--color-companyBlue)]/10 dark:hover:shadow-[var(--color-companyBlue)]/5" },
-  purple: { iconText: "text-[var(--color-purple-600)] dark:text-[var(--color-purple-400)]", borderHover: "hover:border-[var(--color-purple-500)]/50", shadowHover: "hover:shadow-[var(--color-purple-500)]/10 dark:hover:shadow-[var(--color-purple-400)]/5" },
-  green: { iconText: "text-[var(--color-green-600)] dark:text-[var(--color-green-500)]", borderHover: "hover:border-[var(--color-green-500)]/50", shadowHover: "hover:shadow-[var(--color-green-500)]/10 dark:hover:shadow-[var(--color-green-500)]/5" },
-  yellow: { iconText: "text-[var(--color-yellow-500)] dark:text-[var(--color-yellow-400)]", borderHover: "hover:border-[var(--color-yellow-500)]/50", shadowHover: "hover:shadow-[var(--color-yellow-500)]/10 dark:hover:shadow-[var(--color-yellow-400)]/5" },
-  pink: { iconText: "text-[var(--color-pink-500)] dark:text-[var(--color-pink-400)]", borderHover: "hover:border-[var(--color-pink-500)]/50", shadowHover: "hover:shadow-[var(--color-pink-500)]/10 dark:hover:shadow-[var(--color-pink-400)]/5" }
+const servicePalette: Record<string, { icon: string; ringColor: string; glow: string }> = {
+  companyBlue: {
+    icon: 'text-[var(--color-companyBlue)]',
+    ringColor: 'ring-[var(--color-companyBlue)]',
+    glow: 'hover:shadow-[0_8px_24px_var(--color-companyBlue-light)] dark:hover:shadow-[0_8px_24px_#003a40]'
+  },
+  purple: {
+    icon: 'text-[var(--color-purple-600)] dark:text-[var(--color-purple-400)]',
+    ringColor: 'ring-[var(--color-purple-500)]',
+    glow: 'hover:shadow-[0_8px_24px_var(--color-purple-400)] dark:hover:shadow-[0_8px_24px_var(--color-purple-700)]'
+  },
+  green: {
+    icon: 'text-[var(--color-green-600)] dark:text-[var(--color-green-400)]',
+    ringColor: 'ring-[var(--color-green-500)]',
+    glow: 'hover:shadow-[0_8px_24px_var(--color-green-400)] dark:hover:shadow-[0_8px_24px_var(--color-green-700)]'
+  },
+  yellow: {
+    icon: 'text-[var(--color-yellow-500)] dark:text-[var(--color-yellow-400)]',
+    ringColor: 'ring-[var(--color-yellow-500)]',
+    glow: 'hover:shadow-[0_8px_24px_var(--color-yellow-400)] dark:hover:shadow-[0_8px_24px_var(--color-yellow-700)]'
+  },
+  pink: {
+    icon: 'text-[var(--color-pink-500)] dark:text-[var(--color-pink-400)]',
+    ringColor: 'ring-[var(--color-pink-500)]',
+    glow: 'hover:shadow-[0_8px_24px_var(--color-pink-400)] dark:hover:shadow-[0_8px_24px_var(--color-pink-700)]'
+  }
 };
 
-// Function to get all service data based on language
-const allServicesData = (lang: 'en' | 'zh') => {
+const getServices = (lang: 'en' | 'zh') => {
   const t = translations[lang];
   return [
-    { id: "ghg-inventory", icon: ClipboardList, title: t.navServiceGHG, description: t.navServiceGHGDesc, baseColor: "companyBlue" },
-    { id: "cfp-calculation", icon: Calculator, title: t.navServiceFootprinting, description: t.navServiceFootprintingDesc, baseColor: "purple" },
-    { id: "carbon-neutral-strategy", icon: Leaf, title: t.navServiceStrategy, description: t.navServiceStrategyDesc, baseColor: "green" },
-    { id: "sbti-target-setting", icon: Target, title: t.navServiceSBTi, description: t.navServiceSBTiDesc, baseColor: "yellow" }, 
-    { id: "esg-ratings-disclosures", icon: Award, title: t.navServiceRatings, description: t.navServiceRatingsDesc, baseColor: "pink" } 
+    { id: 'ghg', icon: ClipboardList, title: t.navServiceGHG, description: t.navServiceGHGDesc, colour: 'companyBlue' },
+    { id: 'cfp', icon: Calculator,  title: t.navServiceFootprinting, description: t.navServiceFootprintingDesc, colour: 'purple' },
+    { id: 'str', icon: Leaf,        title: t.navServiceStrategy, description: t.navServiceStrategyDesc, colour: 'green' },
+    { id: 'sbti',icon: Target,      title: t.navServiceSBTi, description: t.navServiceSBTiDesc, colour: 'yellow' },
+    { id: 'rate',icon: Award,       title: t.navServiceRatings, description: t.navServiceRatingsDesc, colour: 'pink' }
   ];
 };
 
-
 const FeaturesSection: React.FC = () => {
   const { language, t } = useLanguage();
-  const services = allServicesData(language);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const animationFrameIdRef = useRef<number | null>(null);
-  const [isHovering, setIsHovering] = useState(false);
-  const scrollSpeed = 0.5; // Adjust for continuous scroll speed; lower is slower
+  const services = getServices(language);
 
-  const scrollManually = (direction: 'left' | 'right') => {
-    if (scrollContainerRef.current) {
-      const container = scrollContainerRef.current;
-      const firstCardWrapper = container.querySelector(':scope > div') as HTMLElement; // The div that has mx-2
-      if (!firstCardWrapper) return;
-      
-      const cardWidth = firstCardWrapper.offsetWidth + (parseFloat(getComputedStyle(firstCardWrapper).marginLeft) * 2); // card width + mx-2 on both sides
-      const scrollAmount = direction === 'right' ? cardWidth : -cardWidth;
-      container.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-  };
+  const railRef   = useRef<HTMLDivElement>(null);
+  const rafID     = useRef<number>(0);
+  const pausedRef = useRef(false);
+  const SPEED = 0.6;
 
   useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container || services.length === 0) return;
+    const rail = railRef.current;
+    if (!rail) return;
 
-    // Duplicate content for seamless looping
-    // Clear previous duplicates if services/language changes
-    while (container.children.length > services.length) {
-      container.removeChild(container.lastChild!);
-    }
-    const originalChildren = Array.from(container.children);
-    originalChildren.forEach(child => {
-      container.appendChild(child.cloneNode(true));
-    });
-    
-    let currentScrollLeft = container.scrollLeft;
-
-    const animateScroll = () => {
-      if (!isHovering && container) {
-        currentScrollLeft -= scrollSpeed; // Scroll to the left
-        if (currentScrollLeft <= -(container.scrollWidth / 2)) {
-          currentScrollLeft += container.scrollWidth / 2; // Jump back without animation
-          container.scrollLeft = currentScrollLeft;
+    const loop = () => {
+      if (!pausedRef.current) {
+        rail.scrollLeft += SPEED;
+        if (rail.scrollLeft >= rail.scrollWidth / 2) {
+          rail.scrollLeft -= rail.scrollWidth / 2;
         }
-        container.scrollLeft = currentScrollLeft;
       }
-      animationFrameIdRef.current = requestAnimationFrame(animateScroll);
+      rafID.current = requestAnimationFrame(loop);
     };
+    rafID.current = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(rafID.current);
+  }, [language]);
 
-    animationFrameIdRef.current = requestAnimationFrame(animateScroll);
+  const setPaused = (v: boolean) => (pausedRef.current = v);
+  const nudge     = (dir: 'left' | 'right') => {
+    const rail = railRef.current;
+    if (!rail) return;
+    const card = rail.querySelector<HTMLDivElement>(':scope > div');
+    if (!card) return;
+    rail.scrollBy({ left: dir === 'right' ? card.offsetWidth : -card.offsetWidth, behavior: 'smooth' });
+  };
 
-    return () => {
-      if (animationFrameIdRef.current) {
-        cancelAnimationFrame(animationFrameIdRef.current);
-      }
-    };
-  }, [isHovering, scrollSpeed, services, language]); // Re-run if services/language changes
-
+  const cards = [...services, ...services];
 
   return (
-    <section id="features" className="py-20 sm:py-32 bg-transparent text-slate-800 dark:text-slate-100 relative z-10"> 
+    <section id="features" className="py-20 sm:py-32 relative z-10">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-4xl sm:text-5xl font-bold mb-4">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-companyBlue)] to-[var(--color-green-500)] dark:from-[var(--color-companyBlue)] dark:to-[var(--color-green-400)]">
-              {t.servicesTitle}
-            </span>
-          </h2> 
-          <p className="text-lg text-slate-700 dark:text-slate-200 max-w-2xl mx-auto">{t.servicesSubtitle}</p>
+          <h2 className="text-4xl sm:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-[var(--color-companyBlue)] to-[var(--color-green-500)] dark:from-[var(--color-companyBlue)] dark:to-[var(--color-green-400)]">
+            {t.servicesTitle}
+          </h2>
+          <p className="text-lg text-slate-700 dark:text-slate-300 max-w-2xl mx-auto">
+            {t.servicesSubtitle}
+          </p>
         </div>
-        
-        <div 
-          className="relative"
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
-        >
-          <div 
-            ref={scrollContainerRef}
-            className="flex overflow-x-hidden py-4 -mx-2 px-2" // overflow-x-hidden for continuous scroll
-          >
-            {/* Render services (original set + duplicated set for looping) */}
-            {/* The duplication is handled in useEffect */}
-            {services.map((feature, index) => {
-              const IconComponent = feature.icon;
-              const colors = serviceColorClasses[feature.baseColor] || serviceColorClasses.companyBlue;
+
+        <div className="relative" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+          <div ref={railRef} className="flex overflow-x-hidden gap-4 px-4 sm:px-6 md:px-8 pb-2 select-none">
+            {cards.map((s, i) => {
+              const Icon = s.icon;
+              const pal  = servicePalette[s.colour];
               return (
-                <div key={`${feature.id}-original-${index}`} className="flex-shrink-0 w-full sm:w-[calc(50%-1rem)] md:w-[calc(33.333%-1rem)] lg:w-[calc(33.333%-1rem)] xl:w-[calc(33.333%-1rem)] mx-2"> 
-                  <div className={`group bg-white/70 dark:bg-gray-800/70 backdrop-blur-md p-8 rounded-xl shadow-lg dark:shadow-black/20 border border-slate-300/30 dark:border-gray-700/50 ${colors.borderHover} transition-all duration-300 transform hover:-translate-y-2 ${colors.shadowHover} flex flex-col h-full`}>
-                    <div className={`flex justify-center md:justify-start ${colors.iconText} mb-4 transition-colors`}><IconComponent size={32} strokeWidth={1.5} /></div>
-                    <h3 className={`text-2xl font-bold mb-3 text-slate-800 dark:text-slate-100 transition-colors`}>{feature.title}</h3>
-                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed mb-4 flex-grow text-sm">{feature.description}</p>
+                <div key={`${s.id}-${i}`} className="flex-shrink-0 w-[90%] sm:w-[80%] md:w-[48%] lg:w-[32%] xl:w-[30%]" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+                  <div
+                    className={`group relative h-full rounded-xl
+                      bg-white/90 dark:bg-gray-800/70 backdrop-blur-md
+                      border border-slate-200/60 dark:border-gray-700/50
+                      px-6 py-8 shadow transition-all duration-300
+                      hover:-translate-y-3 ${pal.glow}
+                      ring-0 ring-transparent ${pal.ringColor}
+                      hover:ring-2 dark:hover:ring-2`}
+                  >
+                    <span className="glow-ring pointer-events-none absolute inset-0 -z-10 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                    <Icon size={34} strokeWidth={1.6} className={`${pal.icon} mb-4 mx-auto`} />
+                    <h3 className="text-xl font-bold mb-2 text-center text-slate-800 dark:text-slate-100">
+                      {s.title}
+                    </h3>
+                    <p className="text-sm text-center text-slate-600 dark:text-slate-400">
+                      {s.description}
+                    </p>
                   </div>
                 </div>
               );
             })}
           </div>
-          <button 
-            onClick={() => scrollManually('left')} 
-            className="absolute left-0 sm:-left-4 top-1/2 -translate-y-1/2 z-20 p-3 bg-slate-700/50 hover:bg-slate-700/80 text-white rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent focus:ring-white/50"
-            aria-label="Previous Service"
-          >
-            <ChevronLeft size={28} />
-          </button>
-          <button 
-            onClick={() => scrollManually('right')} 
-            className="absolute right-0 sm:-right-4 top-1/2 -translate-y-1/2 z-20 p-3 bg-slate-700/50 hover:bg-slate-700/80 text-white rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-transparent focus:ring-white/50"
-            aria-label="Next Service"
-          >
-            <ChevronRight size={28} />
-          </button>
-        </div>
 
+          <button aria-label="scroll left"  onClick={() => nudge('left')}  className="absolute left-0 -translate-x-1/2 top-1/2 -translate-y-1/2 z-20 rounded-full bg-slate-700/60 p-3 text-white backdrop-blur-md hover:bg-slate-700/80"><ChevronLeft  size={26} /></button>
+          <button aria-label="scroll right" onClick={() => nudge('right')} className="absolute right-0  translate-x-1/2 top-1/2 -translate-y-1/2 z-20 rounded-full bg-slate-700/60 p-3 text-white backdrop-blur-md hover:bg-slate-700/80"><ChevronRight size={26} /></button>
+        </div>
       </div>
     </section>
   );
