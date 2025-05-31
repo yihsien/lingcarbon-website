@@ -423,3 +423,41 @@ button.glow-border {
   filter: blur(25px);
 }
 
+/* ───────── contact-modal entry animations ───────── */
+@layer utilities {
+  .animate-fade-in  { @apply opacity-0; animation: fade-in .25s forwards; }
+  .animate-scale-in { @apply opacity-0; animation: scale-in .25s forwards; }
+
+  @keyframes fade-in  { from { opacity:0; } to { opacity:1; } }
+  @keyframes scale-in { from { transform:scale(.9); opacity:0; }
+                        to   { transform:scale(1);   opacity:1; } }
+}
+
+/* ───────── services-page illustration helpers ───────── */
+@keyframes drawRing { to { stroke-dashoffset: 0; } }
+@keyframes ringLabelFade { to { opacity: 1; } }
+@keyframes piePop { to { transform: scale(1); } }
+@keyframes typing { 0% { width: 0; } 40%,60% { width: 100%; } 100% { width: 0; } }
+@keyframes blink { 50% { border-color: transparent; } }
+
+.drawRing       { animation: drawRing 1.2s ease-out forwards; }
+.ringDel1       { animation-delay: .4s; }
+.ringDel2       { animation-delay: .8s; }
+.ringLabel      { animation: ringLabelFade .6s ease-out 1.2s forwards; }
+
+.piePop         { transform: scale(0); animation: piePop .8s .8s forwards ease-out; }
+
+.ticker {
+  position: absolute; bottom: -44px; left: 50%; transform: translateX(-50%);
+  width: 260px; text-align: center; font-family: ui-monospace, monospace;
+  font-size: 13px; color: rgb(71 85 105 / .8);  /* slate-600 */
+  white-space: nowrap; overflow: hidden; border-right: 2px solid currentColor;
+  animation: typing 10s steps(60,end) infinite, blink .8s step-end infinite;
+}
+html.dark .ticker { color: rgb(148 163 184 / .7); }  /* slate-400 */
+
+/* ───────── reveal utility (fade + slide-up) ───────── */
+.reveal.show {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}

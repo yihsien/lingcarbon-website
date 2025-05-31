@@ -63,13 +63,13 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
     {
       name: t.navServices,
       href: '#features', // In Next.js, you might link to a page like /services
-      dropdownItems: [
-        { name: t.navServiceGHG, href: '/services#ghg-inventory', icon: ClipboardList, description: t.navServiceGHGDesc },
-        { name: t.navServiceFootprinting, href: '#footprinting', icon: Calculator, description: t.navServiceFootprintingDesc },
-        { name: t.navServiceStrategy, href: '#carbon-neutral-strategy', icon: Leaf, description: t.navServiceStrategyDesc },
-        { name: t.navServiceSBTi, href: '#sbti-target-setting', icon: Target, description: t.navServiceSBTiDesc },
-        { name: t.navServiceRatings, href: '#sustainability-ratings', icon: Award, description: t.navServiceRatingsDesc },
-      ],
+        dropdownItems: [
+        { name: t.navServiceGHG,           href: '/services#ghg-inventory',         icon: ClipboardList, description: t.navServiceGHGDesc },
+        { name: t.navServiceFootprinting,  href: '/services#footprinting',          icon: Calculator,    description: t.navServiceFootprintingDesc },
+        { name: t.navServiceStrategy,      href: '/services#carbon-neutral-strategy', icon: Leaf,       description: t.navServiceStrategyDesc },
+        { name: t.navServiceSBTi,          href: '/services#sbti-target-setting',   icon: Target,       description: t.navServiceSBTiDesc },
+        { name: t.navServiceRatings,       href: '/services#sustainability-ratings', icon: Award,       description: t.navServiceRatingsDesc },
+        ]
     },
     { name: t.navAbout, href: '#about' }, // Example: /about
     { name: t.navResources, href: '#resources' }, // Example: /resources
