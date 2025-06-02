@@ -18,7 +18,7 @@ export const translations = {
     navServiceRatings: "ESG Ratings & Disclosures", 
     navServiceRatingsDesc: `ESG ratings matter. We help companies navigate frameworks like CDP, EcoVadis, DJSI, and UNGC with tailored support — including data gap analysis, indicator mapping, materiality assessment, and report preparation. Strong ESG disclosures boost transparency, stakeholder trust, and performance in global sustainability benchmarks.
 `, 
-    navAbout: "About",
+    navAbout: "Company",
     navResources: "Resources",
     navContact: "Contact Us",
     dropdownCustomSolutionsTitle: "Custom Solutions", 
@@ -76,6 +76,60 @@ export const translations = {
     contactSendMessageButton: "Send Message",
     contactFormSuccess: "Message sent successfully! We'll be in touch soon.",
     contactFormError: "Something went wrong. Please try again later.",
+    servicesHeroTitle: "Solution to Every Carbon Challenge",
+    servicesHeroSubtitle: "From inventory to verified neutrality, one team, one platform, every step.",
+    servicesGHGInventoryAnimationTitle: "Organization GHG Inventory",
+    servicesGHGInventoryAnimationScope1: "Scope 1",
+    servicesGHGInventoryAnimationScope2: "Scope 2",
+    servicesGHGInventoryAnimationScope3: "Scope 3",
+
+    // Scope‑specific animation lines
+    servicesGHGScope1Lines: [
+      "Natural-gas boilers     →  42 tCO₂e",
+      "Diesel generator        →  18 tCO₂e",
+      "Refrigerant leak        →   2 tCO₂e",
+    ],
+    servicesGHGScope2Lines: [
+      "Purchased electricity   → 118 tCO₂e",
+      "District steam          →  12 tCO₂e",
+    ],
+    servicesGHGScope3Lines: [
+      "Business flights        →  29 tCO₂e",
+      "Employee commute        →  44 tCO₂e",
+      "Purchased goods         → 310 tCO₂e",
+      "Outbound logistics      →  73 tCO₂e",
+      "Disposal phase          → 102 tCO₂e",
+    ],
+
+    // CFP wheel labels
+    servicesCFPWheelRaw: "Raw-material extraction",
+    servicesCFPWheelManufacturing: "Manufacturing",
+    servicesCFPWheelDistribution: "Distribution",
+    servicesCFPWheelUse: "Use phase",
+    servicesCFPWheelEOL: "End-of-life",
+
+    // Carbon-neutral scale labels
+    servicesNeutralEmissionSources: "Emission Sources",
+    servicesNeutralCarbonOffsets: "Carbon Offsets",
+    servicesNeutralEmissionsLabel: "Emissions",
+    servicesNeutralOffsettingLabel: "Offsetting",
+
+    //Carrbon-neutral icons labels
+    servicesNeutralIconIndustry: "Industry",
+    servicesNeutralIconTravel: "Travel",
+    servicesNeutralIconTransport: "Transport",
+    servicesNeutralIconEnergy: "Energy",
+    servicesNeutralIconForests: "Forests",
+    servicesNeutralIconSolar: "Solar",
+    servicesNeutralIconWind: "Wind",
+    servicesNeutralIconCapture: "Capture",
+
+    // SBTi step labels
+    servicesSBTiCommit: "Commit",
+    servicesSBTiDevelop: "Develop",
+    servicesSBTiSubmit: "Submit",
+    servicesSBTiCommunicate: "Communicate",
+    servicesSBTiDisclose: "Disclose",
   },
   zh: { 
     navServices: "服務項目",
@@ -124,7 +178,7 @@ export const translations = {
     footerResourcesLink1: "最新消息",
     footerResourcesLink2: "零碳觀點",
     footerResourcesLink3: "常見問題",
-    footerCompany: "關於零碳",
+    footerCompany: "關於我們",
     footerCompanyLink1: "核心團隊",
     footerCompanyLink2: "加入我們",
     footerLegal: "法律條款",
@@ -148,6 +202,60 @@ export const translations = {
     contactSendMessageButton: "送出訊息",
     contactFormSuccess: "謝謝！我們會儘快和您聯絡。",
     contactFormError: "出錯了，請稍後再試。",
+    servicesHeroTitle: "助你從容應對每一個碳管理挑戰",
+    servicesHeroSubtitle: "從盤查到中和，一站式服務，讓碳管理更簡單。",
+    servicesGHGInventoryAnimationTitle: "組織溫室氣體盤查",
+    servicesGHGInventoryAnimationScope1: "範疇一",
+    servicesGHGInventoryAnimationScope2: "範疇二",
+    servicesGHGInventoryAnimationScope3: "範疇三",
+
+    // 範疇動畫文字
+    servicesGHGScope1Lines: [
+      "天然氣鍋爐            →  42 tCO₂e",
+      "柴油發電機            →  18 tCO₂e",
+      "冷媒逸散              →   2 tCO₂e",
+    ],
+    servicesGHGScope2Lines: [
+      "外購電力              → 118 tCO₂e",
+      "區域蒸汽              →  12 tCO₂e",
+    ],
+    servicesGHGScope3Lines: [
+      "商務飛行              →  29 tCO₂e",
+      "員工通勤              →  44 tCO₂e",
+      "外購商品              → 310 tCO₂e",
+      "出貨物流              →  73 tCO₂e",
+      "報廢處理              → 102 tCO₂e",
+    ],
+
+    // CFP wheel labels
+    servicesCFPWheelRaw: "原料開採",
+    servicesCFPWheelManufacturing: "製造",
+    servicesCFPWheelDistribution: "配送",
+    servicesCFPWheelUse: "使用階段",
+    servicesCFPWheelEOL: "回收處置",
+
+    // Carbon-neutral scale labels
+    servicesNeutralEmissionSources: "排放源",
+    servicesNeutralCarbonOffsets: "碳抵換",
+    servicesNeutralEmissionsLabel: "排放",
+    servicesNeutralOffsettingLabel: "抵換",
+
+    //Carrbon-neutral icons labels
+    servicesNeutralIconIndustry: "工廠",
+    servicesNeutralIconTravel: "旅遊",
+    servicesNeutralIconTransport: "運輸",
+    servicesNeutralIconEnergy: "能源",
+    servicesNeutralIconForests: "森林",
+    servicesNeutralIconSolar: "太陽能",
+    servicesNeutralIconWind: "風能",
+    servicesNeutralIconCapture: "碳捕捉",
+
+    // SBTi step labels
+    servicesSBTiCommit: "承諾",
+    servicesSBTiDevelop: "制定目標",
+    servicesSBTiSubmit: "提交",
+    servicesSBTiCommunicate: "溝通",
+    servicesSBTiDisclose: "揭露",
   }
 };
 

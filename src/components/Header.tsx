@@ -8,6 +8,7 @@ import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
 import { useTheme } from './ThemeProvider';
 import { useLanguage } from './LanguageProvider';
+import { useRouter } from 'next/navigation';
 
 interface NavItem {
   name: string;
@@ -29,12 +30,23 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
   const { theme } = useTheme();
   const { t } = useLanguage();
 
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
-  
-  const servicesDropdownRef = useRef<HTMLDivElement>(null);
-  const servicesButtonRef = useRef<HTMLButtonElement>(null);
+  const router = useRouter();
+
+  // Smooth‑scroll so the target section is roughly centred
+  const scrollToSection = (href: string) => {
+    const hash = href.includes('#') ? href.split('#')[1] : '';
+    if (!hash) return;
+
+    const el = document.getElementById(hash);
+    if (el) {
+      // Same‑page: smooth‑scroll & centre
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      // Different page: just navigate; Services page will position the element pre‑paint.
+      // Disable Next.js automatic hash scroll; we'll handle centering after mount
+      router.push(href, { scroll: false });
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -44,8 +56,37 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Re‑centre section after navigating to a different page with #hash
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      if (!hash) return;
+      const el = document.getElementById(hash);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+
+    // Run once on mount in case page loaded with #hash
+    handleHashChange();
+
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
+  
+  const servicesDropdownRef = useRef<HTMLDivElement>(null);
+  const servicesButtonRef = useRef<HTMLButtonElement>(null);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // Skip this logic on mobile menu; links handle their own close
+      if (isMobileMenuOpen) return;
+
       if (
         servicesDropdownRef.current &&
         !servicesDropdownRef.current.contains(event.target as Node) &&
@@ -55,9 +96,10 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
         setIsServicesDropdownOpen(false);
       }
     };
+
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isMobileMenuOpen]);
 
   const navItemsData: NavItem[] = [
     {
@@ -65,10 +107,10 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
       href: '#features', // In Next.js, you might link to a page like /services
         dropdownItems: [
         { name: t.navServiceGHG,           href: '/services#ghg-inventory',         icon: ClipboardList, description: t.navServiceGHGDesc },
-        { name: t.navServiceFootprinting,  href: '/services#footprinting',          icon: Calculator,    description: t.navServiceFootprintingDesc },
+        { name: t.navServiceFootprinting,  href: '/services#cfp-calculation',       icon: Calculator,    description: t.navServiceFootprintingDesc },
         { name: t.navServiceStrategy,      href: '/services#carbon-neutral-strategy', icon: Leaf,       description: t.navServiceStrategyDesc },
         { name: t.navServiceSBTi,          href: '/services#sbti-target-setting',   icon: Target,       description: t.navServiceSBTiDesc },
-        { name: t.navServiceRatings,       href: '/services#sustainability-ratings', icon: Award,       description: t.navServiceRatingsDesc },
+        { name: t.navServiceRatings,       href: '/services#esg-ratings',           icon: Award,       description: t.navServiceRatingsDesc },
         ]
     },
     { name: t.navAbout, href: '#about' }, // Example: /about
@@ -123,7 +165,11 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                                 <Link
                                   key={subItem.name}
                                   href={subItem.href}
-                                  onClick={() => setIsServicesDropdownOpen(false)}
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    scrollToSection(subItem.href);
+                                    setIsServicesDropdownOpen(false);
+                                  }}
                                   className="flex items-start rounded-lg p-4 hover:bg-slate-300/30 dark:hover:bg-slate-700 transition ease-in-out duration-150"
                                 >
                                   <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--color-companyBlue-light)] text-[var(--color-companyBlue)] sm:h-12 sm:w-12">
@@ -156,7 +202,15 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                 ) : (
                   <Link
                     href={item.href}
-                    onClick={item.action ? (e) => { e.preventDefault(); if (item.action) item.action(); } : undefined}
+                    onClick={(e) => {
+                      if (item.action) {
+                        e.preventDefault();
+                        item.action();
+                      } else if (item.href.includes('#')) {
+                        e.preventDefault();
+                        scrollToSection(item.href);
+                      }
+                    }}
                     className="text-slate-700 dark:text-slate-300 hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-companyBlue)] transition-colors duration-200 font-medium text-sm flex items-center py-2 px-3" // Consistent padding
                   >
                     {item.name}
@@ -208,7 +262,12 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                           <Link
                             key={subItem.name}
                             href={subItem.href}
-                            onClick={() => { setIsMobileMenuOpen(false); setIsServicesDropdownOpen(false); }}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              scrollToSection(subItem.href);
+                              setIsMobileMenuOpen(false);
+                              setIsServicesDropdownOpen(false);
+                            }}
                             className="block py-2.5 px-4 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-companyBlue)] rounded-md"
                           >
                             {subItem.name}
@@ -220,7 +279,16 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                 ) : (
                   <Link
                     href={item.href}
-                    onClick={item.action ? (e) => { e.preventDefault(); if (item.action) item.action(); setIsMobileMenuOpen(false); } : () => setIsMobileMenuOpen(false)}
+                    onClick={(e) => {
+                      if (item.action) {
+                        e.preventDefault();
+                        item.action();
+                      } else if (item.href.includes('#')) {
+                        e.preventDefault();
+                        scrollToSection(item.href);
+                      }
+                      setIsMobileMenuOpen(false);
+                    }}
                     className="block w-full text-slate-700 dark:text-slate-200 hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-companyBlue)] transition-colors duration-200 font-medium text-lg py-3 px-3 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700"
                   >
                     {item.name}

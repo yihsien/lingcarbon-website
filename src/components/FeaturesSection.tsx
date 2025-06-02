@@ -1,6 +1,27 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+
+/* ---------- mobile detection ---------- */
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)');
+    const handler = () => setIsMobile(mq.matches);
+    handler();                                     // set initial
+    if (mq.addEventListener) {
+      mq.addEventListener('change', handler);
+    } else {
+      mq.addListener(handler); // Safari <16
+    }
+    return () =>
+      mq.removeEventListener
+        ? mq.removeEventListener('change', handler)
+        : mq.removeListener(handler);
+  }, []);
+  return isMobile;
+};
+
 import {
   ChevronLeft,
   ChevronRight,
@@ -20,7 +41,7 @@ const servicePalette: Record<string, { icon: string; ringColor: string; glow: st
   },
   purple: {
     icon: 'text-[var(--color-purple-600)] dark:text-[var(--color-purple-400)]',
-    ringColor: 'ring-[var(--color-purple-500)]',
+    ringColor: 'ring-[var(--color-purple-400)]',
     glow: 'hover:shadow-[0_8px_24px_var(--color-purple-400)] dark:hover:shadow-[0_8px_24px_var(--color-purple-400)]'
   },
   green: {
@@ -54,6 +75,28 @@ const getServices = (lang: 'en' | 'zh') => {
 const FeaturesSection: React.FC = () => {
   const { language, t } = useLanguage();
   const services = getServices(language);
+  const isMobile = useIsMobile();
+  const [activeIdx, setActiveIdx] = useState(0);
+  // ─── Detect which card is centered on phones ────────────────────────────────
+  useEffect(() => {
+    if (!isMobile) return;
+    const rail = railRef.current;
+    if (!rail) return;
+
+    const onScroll = () => {
+      const card = rail.querySelector<HTMLDivElement>(':scope > div');
+      if (!card) return;
+      const gap = parseFloat(getComputedStyle(rail).gap) || 0;
+      const step = card.offsetWidth + gap;
+      const idx = Math.round(rail.scrollLeft / step);
+      setActiveIdx(Math.min(idx, services.length - 1));
+    };
+
+    // Initial position
+    onScroll();
+    rail.addEventListener('scroll', onScroll, { passive: true });
+    return () => rail.removeEventListener('scroll', onScroll);
+  }, [isMobile, services.length]);
 
   const railRef   = useRef<HTMLDivElement>(null);
   const rafID     = useRef<number>(0);
@@ -61,6 +104,7 @@ const FeaturesSection: React.FC = () => {
   const SPEED = 0.6;
 
   useEffect(() => {
+    if (isMobile) return;            // 🔹 skip auto‑scroll on phones
     const rail = railRef.current;
     if (!rail) return;
 
@@ -75,7 +119,7 @@ const FeaturesSection: React.FC = () => {
     };
     rafID.current = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafID.current);
-  }, [language]);
+  }, [language, isMobile]);
 
   const setPaused = (v: boolean) => (pausedRef.current = v);
   const nudge     = (dir: 'left' | 'right') => {
@@ -86,7 +130,7 @@ const FeaturesSection: React.FC = () => {
     rail.scrollBy({ left: dir === 'right' ? card.offsetWidth : -card.offsetWidth, behavior: 'smooth' });
   };
 
-  const cards = [...services, ...services];
+  const cards = isMobile ? services : [...services, ...services];
 
   return (
     <section id="features" className="py-20 sm:py-32 relative z-10">
@@ -103,32 +147,46 @@ const FeaturesSection: React.FC = () => {
         <div className="relative" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
         <div
         ref={railRef}
-        className="
+        className={`
             flex
-            overflow-x-hidden        /* hide the horizontal over-scroll */
-            overflow-y-visible       /* ✅ allow the card to rise above */
+            ${isMobile
+              ? 'overflow-x-auto overflow-y-visible snap-x snap-mandatory scroll-smooth'
+              : 'overflow-x-hidden overflow-y-visible'}
             gap-4
-            pt-4                     /* ✅ head-room for the lift */
+            pt-4
             px-4 sm:px-6 md:px-8
             pb-2
             select-none
-        "
+        `}
         >
             {cards.map((s, i) => {
               const Icon = s.icon;
               const pal  = servicePalette[s.colour];
+              const isActive = isMobile && i === activeIdx;
               return (
-                <div key={`${s.id}-${i}`} className="flex-shrink-0 w-[90%] sm:w-[80%] md:w-[48%] lg:w-[32%] xl:w-[30%]" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+                <div key={`${s.id}-${i}`} className={`
+                    flex-shrink-0
+                    ${isMobile
+                      ? 'w-[90%] snap-center'
+                      : 'w-[90%] sm:w-[80%] md:w-[48%] lg:w-[32%] xl:w-[30%]'}
+                `} onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
                   <div
-                    className={`group relative h-full rounded-xl
-                      bg-slate-200/30 dark:bg-gray-800/70 backdrop-blur-md
-                      border border-slate-200/300 dark:border-gray-700/50
-                      px-6 py-8 shadow transition-all duration-300
-                      hover:-translate-y-3 ${pal.glow}
-                      ring-0 ring-transparent ${pal.ringColor}
-                      hover:ring-2 dark:hover:ring-2`}
+                    className={`
+                        group relative h-full rounded-xl
+                        bg-slate-200/30 dark:bg-gray-800/70 backdrop-blur-md
+                        border border-slate-200/300 dark:border-gray-700/50
+                        px-6 py-8 shadow transition-all duration-300
+                        ${isActive
+                          ? '-translate-y-3 shadow-[0_8px_24px_var(--tw-shadow-color)] ring-2 ' + pal.ringColor
+                          : ''}
+                        ${!isMobile ? 'hover:-translate-y-3 ' + pal.glow : ''}
+                    `}
+                    style={isActive ? { '--tw-shadow-color': `var(--${s.colour === 'companyBlue' ? 'color-companyBlue' : `color-${s.colour}-400`})` } as React.CSSProperties : undefined}
                   >
-                    <span className="glow-ring pointer-events-none absolute inset-0 -z-10 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                    <span
+                      className={`glow-ring pointer-events-none absolute inset-0 -z-10 rounded-xl transition-opacity duration-300
+                                  ${isMobile ? (isActive ? 'opacity-100' : 'opacity-0') : 'opacity-0 group-hover:opacity-100'}`}
+                    />
                     <Icon size={34} strokeWidth={1.6} className={`${pal.icon} mb-4 mx-auto`} />
                     <h3 className="text-xl font-bold mb-2 text-center text-slate-800 dark:text-slate-100">
                       {s.title}
@@ -142,8 +200,26 @@ const FeaturesSection: React.FC = () => {
             })}
           </div>
 
-          <button aria-label="scroll left"  onClick={() => nudge('left')}  className="absolute left-0 -translate-x-1/2 top-1/2 -translate-y-1/2 z-20 rounded-full bg-slate-700/60 p-3 text-white backdrop-blur-md hover:bg-slate-700/80"><ChevronLeft  size={26} /></button>
-          <button aria-label="scroll right" onClick={() => nudge('right')} className="absolute right-0  translate-x-1/2 top-1/2 -translate-y-1/2 z-20 rounded-full bg-slate-700/60 p-3 text-white backdrop-blur-md hover:bg-slate-700/80"><ChevronRight size={26} /></button>
+          {isMobile && (
+            <div className="flex justify-center gap-2 mt-4">
+              {services.map((_, idx) => (
+                <span
+                  key={idx}
+                  className={`
+                    block w-2 h-2 rounded-full
+                    ${idx === activeIdx ? 'bg-[var(--color-companyBlue)]' : 'bg-slate-400/50'}
+                  `}
+                />
+              ))}
+            </div>
+          )}
+
+          {!isMobile && (
+            <button aria-label="scroll left"  onClick={() => nudge('left')}  className="absolute left-0 -translate-x-1/2 top-1/2 -translate-y-1/2 z-20 rounded-full bg-slate-700/60 p-3 text-white backdrop-blur-md hover:bg-slate-700/80"><ChevronLeft  size={26} /></button>
+          )}
+          {!isMobile && (
+            <button aria-label="scroll right" onClick={() => nudge('right')} className="absolute right-0  translate-x-1/2 top-1/2 -translate-y-1/2 z-20 rounded-full bg-slate-700/60 p-3 text-white backdrop-blur-md hover:bg-slate-700/80"><ChevronRight size={26} /></button>
+          )}
         </div>
       </div>
     </section>

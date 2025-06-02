@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Twitter, Linkedin, Github, Mail } from 'lucide-react';
+//import { Twitter, Linkedin, Github, Mail } from 'lucide-react';
 import AnimatedLogo from './AnimatedLogo';
 import { useTheme } from './ThemeProvider';
 import { useLanguage } from './LanguageProvider';
@@ -12,22 +12,33 @@ const Footer: React.FC = () => {
   const { t } = useLanguage();
   const currentYear = new Date().getFullYear();
 
+  
+  //commenting out social links for now
+  {/*
   const socialLinks = [
     { icon: <Twitter size={24} />, href: "#", name: "Twitter" },
     { icon: <Linkedin size={24} />, href: "#", name: "LinkedIn" },
     { icon: <Github size={24} />, href: "#", name: "GitHub" },
     { icon: <Mail size={24} />, href: "#", name: "Email" },
   ];
+  */}
 
   const footerSections = [
     { 
       title: t.footerProducts, 
       links: [
-        { name: t.footerProductsLink1, href: "#carbon-accounting" }, // Assuming these link to sections or specific pages
+        { name: t.footerProductsLink1, href: "#carbon-accounting" }, 
         { name: t.footerProductsLink2, href: "#footprint-calculation" },
         { name: t.footerProductsLink3, href: "#neutral-implementation" },
         { name: t.footerProductsLink4, href: "#consulting" },
         { name: t.footerProductsLink5, href: "#sbt-initiatives" },
+      ] 
+    },
+    { 
+      title: t.footerCompany, 
+      links: [
+        { name: t.footerCompanyLink1, href: "#about-us" },
+        { name: t.footerCompanyLink2, href: "#our-team" },
       ] 
     },
     { 
@@ -38,13 +49,7 @@ const Footer: React.FC = () => {
         { name: t.footerResourcesLink3, href: "#faqs" },
       ] 
     },
-    { 
-      title: t.footerCompany, 
-      links: [
-        { name: t.footerCompanyLink1, href: "#about-us" },
-        { name: t.footerCompanyLink2, href: "#our-team" },
-      ] 
-    },
+
 //   { 
 //      title: t.footerLegal, 
 //      links: [
@@ -84,18 +89,21 @@ const Footer: React.FC = () => {
         </div>
         <div className="border-t border-slate-400/20 dark:border-gray-700/30 pt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-sm mb-4 md:mb-0">© {currentYear} {t.footerRights}</p>
-          <div className="flex space-x-5">
-            {socialLinks.map(social => (
-              <a 
-                key={social.name} 
-                href={social.href} 
-                aria-label={social.name} 
-                className="hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-sky-400)] transition-colors"
-              >
-                {social.icon}
-              </a>
-            ))}
-          </div>
+          {/*
+            TODO: Re‑enable social media icons by uncommenting the block below.
+            <div className="flex space-x-5">
+              {socialLinks.map(social => (
+                <a
+                  key={social.name}
+                  href={social.href}
+                  aria-label={social.name}
+                  className="hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-sky-400)] transition-colors"
+                >
+                  {social.icon}
+                </a>
+              ))}
+            </div>
+          */}
         </div>
       </div>
     </footer>
