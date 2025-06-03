@@ -245,7 +245,7 @@ export default function ServicesPage() {
       <Header onContactClick={() => setContactOpen(true)} />
 
       {/* hero */}
-      <section className="py-24 sm:py-32 text-center">
+      <section className="pt-28 pb-16 sm:pt-36 sm:pb-20 text-center">
         <div className="mx-auto max-w-4xl px-6 lg:px-8">
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             {translations[language].servicesHeroTitle}

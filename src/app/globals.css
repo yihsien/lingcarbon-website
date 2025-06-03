@@ -466,3 +466,14 @@ html.dark .ticker { color: rgb(148 163 184 / .7); }  /* slate-400 */
     0%, 100% { transform: translateY(0px) scale(1); opacity: 0.6; }
     50% { transform: translateY(-10px) scale(1.2); opacity: 1; }
   }
+
+/* Offset in-page anchors so section titles aren’t hidden by the fixed header */
+@media (max-width: 640px) {
+  html {
+    /* Match this to your mobile header height */
+    scroll-padding-top: 200px;   /* <- try 120 px first; bump up if needed */
+  }
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

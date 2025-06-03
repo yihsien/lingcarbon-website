@@ -27,20 +27,21 @@ const Footer: React.FC = () => {
     { 
       title: t.footerProducts, 
       links: [
-        { name: t.footerProductsLink1, href: "#carbon-accounting" }, 
-        { name: t.footerProductsLink2, href: "#footprint-calculation" },
-        { name: t.footerProductsLink3, href: "#neutral-implementation" },
-        { name: t.footerProductsLink4, href: "#consulting" },
-        { name: t.footerProductsLink5, href: "#sbt-initiatives" },
+        { name: t.footerProductsLink1, href: "/services#ghg-inventory" }, 
+        { name: t.footerProductsLink2, href: "/services#cfp-calculation" },
+        { name: t.footerProductsLink3, href: "/services#carbon-neutral-strategy" },
+        { name: t.footerProductsLink4, href: "/services#sbti-target-setting" },
+        { name: t.footerProductsLink5, href: "/services#esg-ratings" },
       ] 
     },
     { 
       title: t.footerCompany, 
       links: [
-        { name: t.footerCompanyLink1, href: "#about-us" },
-        { name: t.footerCompanyLink2, href: "#our-team" },
+        { name: t.footerCompanyLink1, href: "/our-team" },
+        { name: t.footerCompanyLink2, href: "/join-us" },
       ] 
     },
+    /*
     { 
       title: t.footerResources, 
       links: [
@@ -49,6 +50,7 @@ const Footer: React.FC = () => {
         { name: t.footerResourcesLink3, href: "#faqs" },
       ] 
     },
+    */
 
 //   { 
 //      title: t.footerLegal, 
@@ -65,15 +67,15 @@ const Footer: React.FC = () => {
   return (
     <footer className={`border-t border-slate-400/20 dark:border-gray-700/30 text-slate-700 dark:text-slate-300 py-16 relative z-10 ${sectionBgClass}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 md:grid-cols-6 lg:grid-cols-6 gap-8 mb-12">
-          <div className="col-span-2 md:col-span-2 lg:col-span-2 mb-8 lg:mb-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 lg:grid-cols-6 gap-8 mb-12 justify-items-center sm:justify-items-start">
+          <div className="sm:col-span-2 md:col-span-2 lg:col-span-2 mb-8 lg:mb-0 text-center sm:text-left">
             <Link href="/" className="flex items-center space-x-2 text-xl font-bold mb-4">
               <AnimatedLogo variant="footer" />
             </Link>
             <p className="text-sm">{t.footerSlogan}</p>
           </div>
           {footerSections.map(section => (
-            <div key={section.title}>
+            <div key={section.title} className="text-center sm:text-left">
               <h5 className="font-semibold text-slate-800 dark:text-slate-200 mb-4">{section.title}</h5>
               <ul className="space-y-2">
                 {section.links.map(link => (

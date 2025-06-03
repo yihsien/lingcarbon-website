@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect} from 'react';
 import Link from 'next/link'; // Use Next.js Link for navigation
-import { ChevronDown, ClipboardList, Calculator, Leaf, Target, Award } from 'lucide-react';
+import { ChevronDown, ClipboardList, Calculator, Leaf, Target, Award, Users, Briefcase} from 'lucide-react';
+//import { Newspaper, BookOpen, HelpCircle } from 'lucide-react';
 import AnimatedLogo from './AnimatedLogo';
 import ThemeToggle from './ThemeToggle';
 import LanguageToggle from './LanguageToggle';
-import { useTheme } from './ThemeProvider';
+//import { useTheme } from './ThemeProvider';
 import { useLanguage } from './LanguageProvider';
 import { useRouter } from 'next/navigation';
 
@@ -14,12 +15,17 @@ interface NavItem {
   name: string;
   href: string;
   action?: () => void;
+  /** Items shown in dropdown (if any) */
   dropdownItems?: Array<{
     name: string;
     href: string;
     icon: React.ElementType;
     description: string;
   }>;
+  /** Render dropdown items in a single vertical column */
+  vertical?: boolean;
+  /** Show the CTA footer (defaults to true) */
+  showCTA?: boolean;
 }
 
 interface HeaderProps {
@@ -27,10 +33,21 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
-  const { theme } = useTheme();
+  //const { theme } = useTheme();
   const { t } = useLanguage();
-
   const router = useRouter();
+
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [disableDropdownUntilLeave, setDisableDropdownUntilLeave] = useState(false);
+
+  // Reset dropdown states when navigating
+  const resetDropdownStates = () => {
+    setOpenDropdown(null);
+    setDisableDropdownUntilLeave(false);
+    setIsMobileMenuOpen(false);
+  };
 
   // Smooth‑scroll so the target section is roughly centred
   const scrollToSection = (href: string) => {
@@ -42,8 +59,8 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
       // Same‑page: smooth‑scroll & centre
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     } else {
-      // Different page: just navigate; Services page will position the element pre‑paint.
-      // Disable Next.js automatic hash scroll; we'll handle centering after mount
+      // Different page: navigate and reset dropdown states
+      resetDropdownStates();
       router.push(href, { scroll: false });
     }
   };
@@ -75,36 +92,24 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
-  
-  const servicesDropdownRef = useRef<HTMLDivElement>(null);
-  const servicesButtonRef = useRef<HTMLButtonElement>(null);
-
+  // Reset dropdown when route changes
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      // Skip this logic on mobile menu; links handle their own close
-      if (isMobileMenuOpen) return;
-
-      if (
-        servicesDropdownRef.current &&
-        !servicesDropdownRef.current.contains(event.target as Node) &&
-        servicesButtonRef.current &&
-        !servicesButtonRef.current.contains(event.target as Node)
-      ) {
-        setIsServicesDropdownOpen(false);
-      }
+    const handleRouteChange = () => {
+      resetDropdownStates();
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [isMobileMenuOpen]);
+    // Listen for route changes (Next.js specific)
+    window.addEventListener('beforeunload', handleRouteChange);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleRouteChange);
+    };
+  }, []);
 
   const navItemsData: NavItem[] = [
     {
       name: t.navServices,
-      href: '#features', // In Next.js, you might link to a page like /services
+      href: '/services',
         dropdownItems: [
         { name: t.navServiceGHG,           href: '/services#ghg-inventory',         icon: ClipboardList, description: t.navServiceGHGDesc },
         { name: t.navServiceFootprinting,  href: '/services#cfp-calculation',       icon: Calculator,    description: t.navServiceFootprintingDesc },
@@ -113,53 +118,136 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
         { name: t.navServiceRatings,       href: '/services#esg-ratings',           icon: Award,       description: t.navServiceRatingsDesc },
         ]
     },
-    { name: t.navAbout, href: '#about' }, // Example: /about
-    { name: t.navResources, href: '#resources' }, // Example: /resources
+    {
+      name: t.navCompany,
+      href: '#company',
+      dropdownItems: [
+        {
+          name: t.navOurTeam,
+          href: '/our-team',
+          icon: Users,
+          description: t.navOurTeamDesc,
+        },
+        {
+          name: t.navJoinUs,
+          href: '/join-us',
+          icon: Briefcase,
+          description: t.navJoinUsDesc,
+        },
+      ],
+    },
+    /*
+    {
+      name: t.navResources,
+      href: '#resources',
+      vertical: true,
+      showCTA: false,
+      dropdownItems: [
+        {
+          name: t.navLatestNews,
+          href: '/latest-news',
+          icon: Newspaper,
+          description: t.navLatestNewsDesc,
+        },
+        {
+          name: t.navBlog,
+          href: '/blog',
+          icon: BookOpen,
+          description: t.navBlogDesc,
+        },
+        {
+          name: t.navFAQs,
+          href: '/faqs',
+          icon: HelpCircle,
+          description: t.navFAQsDesc,
+        },
+      ],
+    },
+    */
     { name: t.navContact, href: '#contact', action: onContactClick },
   ];
 
+  // Keep a transparent bottom‑border at all times so no new
+  // layer is painted when scrolling → prevents white flash.
   const headerBgClass = isScrolled
-    ? 'bg-[#d7d8d8]/60 dark:bg-black/70 backdrop-blur-lg shadow-lg'
-    : 'bg-transparent';
+    ? 'bg-white/10 dark:bg-gray-900/30 backdrop-blur-xl shadow-sm border-b border-gray-200/20 dark:border-gray-700/30'
+    : 'bg-transparent border-b border-transparent';
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${headerBgClass}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           <Link href="/" className="flex items-center space-x-2">
-                        <AnimatedLogo
+            <AnimatedLogo
               className="h-8 md:h-9 lingcarbon-logo-main animate-logo"
               variant="main"
             />
           </Link>
           
-          <nav className="hidden md:flex items-center space-x-1"> {/* Reduced space-x for tighter packing if needed */}
+          <nav className="hidden md:flex items-center space-x-1">
             {navItemsData.map((item) => (
               <div
                 key={item.name}
                 className="relative"
-                // Move handlers here so both button and dropdown are covered
-                onMouseEnter={item.dropdownItems ? () => setIsServicesDropdownOpen(true) : undefined}
-                onMouseLeave={item.dropdownItems ? () => setIsServicesDropdownOpen(false) : undefined}
+                onMouseEnter={item.dropdownItems ? () => {
+                  if (!disableDropdownUntilLeave) setOpenDropdown(item.name);
+                } : undefined}
+                onMouseLeave={item.dropdownItems ? () => {
+                  setOpenDropdown(null);
+                  setDisableDropdownUntilLeave(false);
+                } : undefined}
               >
                 {item.dropdownItems ? (
                   <>
-                    <button
-                      type="button"
-                      ref={servicesButtonRef}
-                      className="text-slate-700 dark:text-slate-300 hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-companyBlue)] transition-colors duration-200 font-medium text-sm flex items-center py-2 px-3"
+                    <Link
+                      href={item.href}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        
+                        if (item.href.includes('#')) {
+                          scrollToSection(item.href);
+                        } else {
+                          resetDropdownStates();
+                          router.push(item.href);
+                        }
+                      }}
+                      className="text-gray-700 dark:text-gray-300 hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-companyBlue)] transition-all duration-200 font-medium text-sm flex items-center py-3 px-4 rounded-lg hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
                     >
                       {item.name}
-                      <ChevronDown size={16} className={`ml-1 transition-transform duration-200 ${isServicesDropdownOpen ? 'rotate-180' : ''}`} />
-                    </button>
-                    {isServicesDropdownOpen && (
+                      <ChevronDown
+                        size={14}
+                        className={`ml-1.5 transition-all duration-300 ${
+                          openDropdown === item.name ? 'rotate-180 text-[var(--color-companyBlue)]' : ''
+                        }`}
+                      />
+                    </Link>
+                    {openDropdown === item.name && !disableDropdownUntilLeave && (
                       <div
-                        ref={servicesDropdownRef}
-                        className="absolute top-full left-1/2 -translate-x-1/2 w-screen max-w-md lg:max-w-2xl xl:max-w-6xl"
+                        className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 ${
+                          item.vertical
+                            ? 'w-80'
+                            : item.dropdownItems.length <= 2
+                              ? 'w-80'
+                              : 'w-screen max-w-4xl'
+                        } animate-in fade-in-0 zoom-in-95 duration-200`}
+                        style={{
+                          animation: 'dropdownAppear 0.2s ease-out forwards'
+                        }}
                       >
-                        <div className="overflow-hidden rounded-2xl shadow-lg ring-1 ring-black/5 dark:ring-white/10 bg-slate-200 dark:bg-slate-800 pt-6 mt-4">
-                          <div className="relative grid gap-x-6 gap-y-3 px-5 pb-4 sm:px-8 sm:pb-6 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
-                            {item.dropdownItems.map((subItem) => {
+                        <div className="overflow-hidden rounded-xl bg-gray-200/100 dark:bg-gray-900/100 backdrop-blur-xl shadow-2xl ring-1 ring-gray-900/5 dark:ring-gray-100/10 border border-gray-200/20 dark:border-gray-700/30">
+                          {/* Subtle gradient overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-companyBlue-light)]/20 to-transparent dark:from-[var(--color-companyBlue)]/10 pointer-events-none"></div>
+                          
+                          <div
+                            className={`relative p-6 ${
+                              item.vertical
+                                ? 'flex flex-col space-y-1'
+                                : item.dropdownItems.length <= 2
+                                  ? 'flex flex-col space-y-1'
+                                  : 'grid gap-1 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3'
+                            }`}
+                          >
+                            {item.dropdownItems.map((subItem, index) => {
                               const Icon = subItem.icon;
                               return (
                                 <Link
@@ -167,34 +255,80 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                                   href={subItem.href}
                                   onClick={(e) => {
                                     e.preventDefault();
-                                    scrollToSection(subItem.href);
-                                    setIsServicesDropdownOpen(false);
+                                    resetDropdownStates();
+                                    
+                                    if (subItem.href.includes('#')) {
+                                      scrollToSection(subItem.href);
+                                    } else {
+                                      router.push(subItem.href);
+                                    }
                                   }}
-                                  className="flex items-start rounded-lg p-4 hover:bg-slate-300/30 dark:hover:bg-slate-700 transition ease-in-out duration-150"
+                                  className="group relative flex items-start rounded-lg p-4 transition-all duration-200 hover:bg-gray-50/80 dark:hover:bg-gray-800/50 hover:scale-[1.02] border border-transparent hover:border-gray-200/40 dark:hover:border-gray-700/40"
+                                  style={{
+                                    animationDelay: `${index * 50}ms`,
+                                    animation: 'slideInUp 0.3s ease-out forwards'
+                                  }}
                                 >
-                                  <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-lg bg-[var(--color-companyBlue-light)] text-[var(--color-companyBlue)] sm:h-12 sm:w-12">
-                                    <Icon aria-hidden="true" className="size-6" />
+                                  {/* Icon container with tech-style glow */}
+                                  <div className="relative">
+                                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--color-companyBlue)] to-[var(--color-companyBlue)]/80 dark:from-[var(--color-companyBlue)] dark:to-[var(--color-companyBlue)]/70 shadow-lg group-hover:shadow-xl group-hover:shadow-[var(--color-companyBlue)]/25 transition-all duration-200">
+                                      <Icon className="h-5 w-5 text-white" />
+                                    </div>
+                                    {/* Subtle glow effect */}
+                                    <div className="absolute inset-0 rounded-lg bg-[var(--color-companyBlue)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 blur-sm"></div>
                                   </div>
-                                  <div className="ml-4">
-                                    <p className="text-base font-medium text-slate-900 dark:text-slate-100">{subItem.name}</p>
-                                    <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{subItem.description}</p>
+                                  
+                                  <div className="ml-4 flex-1">
+                                    <div className="flex items-center">
+                                      <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-[var(--color-companyBlue)] transition-colors duration-200">
+                                        {subItem.name}
+                                      </p>
+                                      {/* Subtle arrow indicator */}
+                                      <svg 
+                                        className="ml-2 h-3 w-3 text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200" 
+                                        fill="none" 
+                                        stroke="currentColor" 
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                      </svg>
+                                    </div>
+                                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                                      {subItem.description}
+                                    </p>
                                   </div>
                                 </Link>
                               );
                             })}
                           </div>
-                          <div className={`bg-slate-200 dark:bg-slate-800 px-5 py-3 sm:px-8 sm:py-3 border-t border-slate-400/20 dark:border-slate-700 flex flex-col sm:flex-row items-center ${theme === 'light' ? 'justify-between' : 'justify-center sm:justify-between'}`}>
-                            <div>
-                              <h3 className="text-sm font-semibold leading-6 text-slate-900 dark:text-slate-200">{t.dropdownCustomSolutionsTitle}</h3>
-                              <p className="mt-1 text-sm leading-6 text-slate-500 dark:text-slate-400">{t.dropdownCustomSolutionsDesc}</p>
+                          
+                          {/* Enhanced CTA section */}
+                          {item.showCTA !== false && item.dropdownItems.length > 2 && (
+                            <div className="relative border-t border-gray-200/40 dark:border-gray-700/40 bg-gradient-to-r from-gray-50/50 to-gray-100/30 dark:from-gray-800/50 dark:to-gray-900/30 px-6 py-4">
+                              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+                                <div className="flex-1">
+                                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center">
+                                    {t.dropdownCustomSolutionsTitle}
+                                    <div className="ml-2 h-1.5 w-1.5 rounded-full bg-[var(--color-companyBlue)] animate-pulse"></div>
+                                  </h3>
+                                  <p className="mt-1 text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                                    {t.dropdownCustomSolutionsDesc}
+                                  </p>
+                                </div>
+                                <button
+                                  onClick={() => { 
+                                    onContactClick(); 
+                                    resetDropdownStates(); 
+                                  }}
+                                  className="mt-3 sm:mt-0 sm:ml-6 shrink-0 relative overflow-hidden rounded-lg bg-gradient-to-r from-[var(--color-companyBlue)] to-[var(--color-companyBlue)]/80 px-4 py-2.5 text-xs font-semibold text-white shadow-lg hover:shadow-xl hover:shadow-[var(--color-companyBlue)]/25 transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[var(--color-companyBlue)]/50 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
+                                >
+                                  <span className="relative z-10">{t.navContact}</span>
+                                  {/* Hover shimmer effect */}
+                                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                                </button>
+                              </div>
                             </div>
-                            <button
-                              onClick={() => { onContactClick(); setIsServicesDropdownOpen(false); }}
-                              className="mt-3 sm:mt-0 sm:ml-4 shrink-0 rounded-md bg-[var(--color-companyBlue)] px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-companyBlue)]/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-companyBlue)]"
-                            >
-                              {t.navContact}
-                            </button>
-                          </div>
+                          )}
                         </div>
                       </div>
                     )}
@@ -210,8 +344,9 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                         e.preventDefault();
                         scrollToSection(item.href);
                       }
+                      resetDropdownStates();
                     }}
-                    className="text-slate-700 dark:text-slate-300 hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-companyBlue)] transition-colors duration-200 font-medium text-sm flex items-center py-2 px-3" // Consistent padding
+                    className="text-gray-700 dark:text-gray-300 hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-companyBlue)] transition-all duration-200 font-medium text-sm flex items-center py-3 px-4 rounded-lg hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
                   >
                     {item.name}
                   </Link>
@@ -226,10 +361,10 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
             <div className="md:hidden">
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="text-slate-600 dark:text-slate-300 hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-companyBlue)] focus:outline-none p-1"
+                className="text-gray-600 dark:text-gray-300 hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-companyBlue)] focus:outline-none p-2 rounded-lg hover:bg-gray-100/50 dark:hover:bg-gray-800/50 transition-all duration-200"
                 aria-label="Toggle mobile menu"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   {isMobileMenuOpen ? (
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
                   ) : (
@@ -242,34 +377,48 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
         </div>
       </div>
 
+      {/* Enhanced Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="md:hidden bg-[#d7d8d8]/90 dark:bg-black/90 backdrop-blur-md pb-4 absolute w-full shadow-lg">
-          <nav className="flex flex-col items-center space-y-1 pt-2 px-2">
-            {navItemsData.map((item) => (
-              <div key={item.name} className="w-full text-center">
+        <div className="md:hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-t border-gray-200/20 dark:border-gray-700/30 shadow-xl">
+          <nav className="flex flex-col space-y-1 p-4">
+            {navItemsData.map((item, index) => (
+              <div key={item.name} className="w-full" style={{ animationDelay: `${index * 100}ms` }}>
                 {item.dropdownItems ? (
                   <>
                     <button
-                      onClick={() => setIsServicesDropdownOpen(prev => !prev)}
-                      className="w-full text-slate-700 dark:text-slate-200 hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-companyBlue)] transition-colors duration-200 font-medium text-lg py-3 px-3 flex items-center justify-center rounded-md hover:bg-slate-200 dark:hover:bg-slate-700"
+                      onClick={() => {
+                        setOpenDropdown(prev => (prev === item.name ? null : item.name));
+                      }}
+                      className="w-full text-gray-700 dark:text-gray-200 hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-companyBlue)] transition-all duration-200 font-medium text-base py-3 px-4 flex items-center justify-between rounded-lg hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
                     >
                       {item.name}
-                      <ChevronDown size={20} className={`ml-2 transition-transform duration-200 ${isServicesDropdownOpen ? 'rotate-180' : ''}`} />
+                      <ChevronDown 
+                        size={16} 
+                        className={`transition-transform duration-300 ${
+                          openDropdown === item.name ? 'rotate-180 text-[var(--color-companyBlue)]' : ''
+                        }`} 
+                      />
                     </button>
-                    {isServicesDropdownOpen && (
-                      <div className="bg-slate-100/50 dark:bg-slate-800/50 w-full mt-1 rounded-md">
-                        {item.dropdownItems.map(subItem => (
+                    {openDropdown === item.name && (
+                      <div className="bg-gray-50/50 dark:bg-gray-800/30 rounded-lg mt-1 ml-4 overflow-hidden">
+                        {item.dropdownItems.map((subItem, subIndex) => (
                           <Link
                             key={subItem.name}
                             href={subItem.href}
                             onClick={(e) => {
                               e.preventDefault();
-                              scrollToSection(subItem.href);
-                              setIsMobileMenuOpen(false);
-                              setIsServicesDropdownOpen(false);
+                              resetDropdownStates();
+                              
+                              if (subItem.href.includes('#')) {
+                                scrollToSection(subItem.href);
+                              } else {
+                                router.push(subItem.href);
+                              }
                             }}
-                            className="block py-2.5 px-4 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-companyBlue)] rounded-md"
+                            className="flex items-center py-3 px-4 text-gray-600 dark:text-gray-300 hover:bg-gray-100/70 dark:hover:bg-gray-700/50 hover:text-[var(--color-companyBlue)] transition-all duration-200 text-sm"
+                            style={{ animationDelay: `${subIndex * 50}ms` }}
                           >
+                            <subItem.icon className="h-4 w-4 mr-3 text-[var(--color-companyBlue)]" />
                             {subItem.name}
                           </Link>
                         ))}
@@ -287,9 +436,9 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                         e.preventDefault();
                         scrollToSection(item.href);
                       }
-                      setIsMobileMenuOpen(false);
+                      resetDropdownStates();
                     }}
-                    className="block w-full text-slate-700 dark:text-slate-200 hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-companyBlue)] transition-colors duration-200 font-medium text-lg py-3 px-3 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700"
+                    className="block w-full text-gray-700 dark:text-gray-200 hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-companyBlue)] transition-all duration-200 font-medium text-base py-3 px-4 rounded-lg hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
                   >
                     {item.name}
                   </Link>
@@ -299,6 +448,31 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
           </nav>
         </div>
       )}
+
+      {/* Custom CSS for animations */}
+      <style jsx>{`
+        @keyframes dropdownAppear {
+          from {
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+        
+        @keyframes slideInUp {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </header>
   );
 };

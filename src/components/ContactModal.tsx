@@ -1,14 +1,17 @@
 'use client';
 
-import React, { useState, FormEvent, ChangeEvent } from 'react';
+import React, { useState, useEffect, FormEvent, ChangeEvent } from 'react';
 import {
   X,
   Building2,
   Phone,
-  MailCheck
+  Mail,
+  Send,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react';
 
-import { useTheme } from './ThemeProvider';
+
 import { useLanguage } from './LanguageProvider';
 
 interface ContactModalProps {
@@ -17,16 +20,16 @@ interface ContactModalProps {
 }
 
 const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
-  const { theme }        = useTheme();
-  const { t }            = useLanguage();
+
+  const { t } = useLanguage();
 
   /* ───────────── form state ───────────── */
   const [formData, setFormData] = useState({
-    firstName   : '',
-    lastName    : '',
-    email       : '',
-    phoneNumber : '',
-    message     : ''
+    firstName: '',
+    lastName: '',
+    email: '',
+    phoneNumber: '',
+    message: ''
   });
   const [formStatus, setFormStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
 
@@ -37,24 +40,34 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     try {
       setFormStatus('sending');
-      await new Promise(r => setTimeout(r, 1200)); // fake API latency
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      if (!res.ok) throw new Error('Mail failed');
       setFormStatus('success');
-      setFormData({ firstName:'', lastName:'', email:'', phoneNumber:'', message:'' });
-      setTimeout(() => setFormStatus('idle'), 4000);
+      setFormData({ firstName: '', lastName: '', email: '', phoneNumber: '', message: '' });
     } catch {
       setFormStatus('error');
+    } finally {
       setTimeout(() => setFormStatus('idle'), 4000);
     }
   };
 
-  /* ───────────── style helpers ───────────── */
-  const light  = theme === 'light';
-  const txt    = light ? 'text-slate-900'             : 'text-slate-100';
-  const subTxt = light ? 'text-slate-600'             : 'text-slate-300';
-  const icon   = light ? 'text-slate-400'             : 'text-slate-400';
-  const bgInput= light ? 'bg-white'                   : 'bg-slate-800';
-  const ring   = light ? 'ring-slate-300'             : 'ring-slate-600';
-  const leftBg = light ? 'bg-slate-50/70'             : 'bg-black/30 backdrop-blur-md';
+  // Prevent page scroll when modal is open
+useEffect(() => {
+  if (isOpen) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+  }
+  // Cleanup on unmount or when modal closes
+  return () => {
+    document.body.style.overflow = '';
+  };
+}, [isOpen]);
+
 
   if (!isOpen) return null;
 
@@ -62,93 +75,208 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
     <div
       aria-modal
       className="fixed inset-0 z-[60] flex items-center justify-center p-4
-                 bg-black/60 dark:bg-black/80 backdrop-blur-sm
-                 animate-fade-in"
+           bg-black/70 backdrop-blur-md no-scrollbar
+           animate-in fade-in duration-300"
+      onClick={onClose}
     >
       <div
-        className="relative w-full max-w-5xl max-h-[90vh] flex flex-col
-                   overflow-hidden rounded-2xl shadow-2xl
-                   bg-white dark:bg-slate-900
-                   animate-scale-in"
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-6xl max-h-[95dvh] flex flex-col
+            overflow-y-auto rounded-3xl shadow-2xl overscroll-y-contain
+            touch-pan-y bg-slate-100/95 dark:bg-slate-800/95 backdrop-blur-xl
+            border border-slate-300/30 dark:border-slate-600/40
+            animate-in zoom-in-95 slide-in-from-bottom-4 duration-500"
       >
-        {/* close */}
+        {/* Decorative gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-200/40 via-transparent to-slate-300/20 
+                        dark:from-slate-700/30 dark:via-transparent dark:to-slate-600/20 pointer-events-none" />
+        
+        {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-500 dark:text-slate-400
-                     hover:text-slate-700 dark:hover:text-slate-200 transition"
+          className="absolute top-5 right-5 z-10 p-2.5 rounded-full
+                     text-slate-500 hover:text-slate-700 dark:text-slate-300 dark:hover:text-slate-100
+                     hover:bg-slate-200/80 dark:hover:bg-slate-700/80 backdrop-blur-sm
+                     transition-all duration-300 hover:scale-110 hover:rotate-90
+                     border border-transparent hover:border-slate-300/50 dark:hover:border-slate-600/50"
           aria-label="Close contact modal"
         >
-          <X size={24}/>
+          <X size={20} />
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 flex-grow">
-          {/* ───────────── left column (info) ───────────── */}
-          <div className={`${leftBg} relative px-8 py-20`}>
-            {/* subtle pattern */}
-            <div
-              className="pointer-events-none absolute inset-0 -z-10
-                         bg-[linear-gradient(transparent_29px,rgba(0,0,0,0.04)_30px),
-                              linear-gradient(90deg,transparent_29px,rgba(0,0,0,0.04)_30px)]
-                         bg-[length:30px_30px]"
-            />
-            <h2 className={`text-3xl font-extrabold ${txt}`}>{t.contactModalTitle}</h2>
-            <p className={`mt-4 text-lg leading-7 ${subTxt}`}>{t.contactModalSubtitle}</p>
+          {/* ───────────── Left column (info) ───────────── */}
+          <div className="relative px-10 py-20 bg-gradient-to-br from-slate-200/80 to-slate-300/60 
+                          dark:from-slate-700/80 dark:to-slate-800/60 backdrop-blur-sm">
+            {/* Subtle animated background pattern */}
+            <div className="absolute inset-0 opacity-5 dark:opacity-10">
+              <div className="absolute top-10 left-10 w-32 h-32 bg-blue-500 rounded-full blur-3xl animate-pulse" />
+              <div className="absolute bottom-20 right-10 w-24 h-24 bg-purple-500 rounded-full blur-2xl animate-pulse" 
+                   style={{ animationDelay: '2s' }} />
+            </div>
+            
+            <div className="relative z-10 space-y-8">
+              <div className="space-y-4">
+                <h2 className="text-4xl font-bold text-slate-800 dark:text-slate-100 leading-tight
+                               animate-in slide-in-from-left-6 duration-700">
+                  {t.contactModalTitle}
+                </h2>
+                
+                <div className="w-16 h-px bg-gradient-to-r from-[var(--color-companyBlue)] to-purple-400 
+                                animate-in slide-in-from-left-8 duration-700 delay-200" />
+                
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-lg
+                               animate-in slide-in-from-left-8 duration-700 delay-300">
+                  {t.contactModalSubtitle}
+                </p>
+              </div>
 
-            <dl className={`mt-10 space-y-4 text-base leading-7 ${subTxt}`}>
-              <InfoLine icon={<Building2 size={28} className={icon}/>} text={t.contactOfficeAddress}/>
-              <InfoLine icon={<Phone size={28}    className={icon}/>}
-                        text={<a href={`tel:${t.contactPhoneNumber.replace(/\s/g,'')}`}
-                                 className="hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-sky-400)]">
-                                {t.contactPhoneNumber}
-                              </a>} />
-              <InfoLine icon={<MailCheck size={28} className={icon}/>}
-                        text={<a href={`mailto:${t.contactEmailAddress}`}
-                                 className="hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-sky-400)]">
-                                {t.contactEmailAddress}
-                              </a>} />
-            </dl>
+              {/* Contact info */}
+              <div className="space-y-8 animate-in slide-in-from-left-8 duration-700 delay-500">
+                <ContactInfoItem
+                  icon={<Building2 size={22} />}
+                  value={t.contactOfficeAddress}
+                />
+                <ContactInfoItem
+                  icon={<Phone size={22} />}
+                  value={
+                    <a
+                      href={`tel:${t.contactPhoneNumber.replace(/\s/g, '')}`}
+                      className="hover:text-[var(--color-companyBlue)] transition-colors duration-300
+                                 hover:underline underline-offset-4"
+                    >
+                      {t.contactPhoneNumber}
+                    </a>
+                  }
+                />
+                <ContactInfoItem
+                  icon={<Mail size={22} />}
+                  value={
+                    <a
+                      href={`mailto:${t.contactEmailAddress}`}
+                      className="hover:text-[var(--color-companyBlue)] transition-colors duration-300
+                                 hover:underline underline-offset-4"
+                    >
+                      {t.contactEmailAddress}
+                    </a>
+                  }
+                />
+              </div>
+            </div>
           </div>
 
-          {/* ───────────── right column (form) ───────────── */}
-          <form
-            onSubmit={handleSubmit}
-            className="px-8 py-12 overflow-y-auto"
-          >
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <Input label={t.contactFirstNameLabel}  name="firstName"  value={formData.firstName}  onChange={handleChange}
-                     txt={txt} bg={bgInput} ring={ring}/>
-              <Input label={t.contactLastNameLabel}   name="lastName"   value={formData.lastName}   onChange={handleChange}
-                     txt={txt} bg={bgInput} ring={ring}/>
-              <Input label={t.contactEmailLabel}      name="email" type="email" value={formData.email} onChange={handleChange}
-                     className="sm:col-span-2" txt={txt} bg={bgInput} ring={ring}/>
-              <Input label={t.contactPhoneNumberLabel} name="phoneNumber" type="tel" value={formData.phoneNumber} onChange={handleChange}
-                     className="sm:col-span-2" txt={txt} bg={bgInput} ring={ring}/>
-              <TextArea label={t.contactMessageLabel} name="message" rows={4} value={formData.message} onChange={handleChange}
-                        className="sm:col-span-2" txt={txt} bg={bgInput} ring={ring}/>
+          {/* ───────────── Right column (form) ───────────── */}
+          <form onSubmit={handleSubmit} className="px-10 py-20 overflow-y-auto max-h-full pb-36">
+            <div className="space-y-6 animate-in slide-in-from-right-6 duration-700 delay-200">
+              {/* Name fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <MinimalInput
+                  label={t.contactFirstNameLabel}
+                  name="firstName"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                />
+                <MinimalInput
+                  label={t.contactLastNameLabel}
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                />
+              </div>
+
+              {/* Email */}
+              <MinimalInput
+                label={t.contactEmailLabel}
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+              />
+
+              {/* Phone */}
+              <MinimalInput
+                label={t.contactPhoneNumberLabel}
+                name="phoneNumber"
+                type="tel"
+                value={formData.phoneNumber}
+                onChange={handleChange}
+              />
+
+              {/* Message */}
+              <MinimalTextArea
+                label={t.contactMessageLabel}
+                name="message"
+                rows={3}               /* slightly shorter textarea */
+                value={formData.message}
+                onChange={handleChange}
+              />
             </div>
 
-            {/* submit + feedback */}
-            <div className="mt-8 flex items-center gap-4">
+            {/* Submit section */}
+            <div className="mt-10 space-y-6 animate-in slide-in-from-right-6 duration-700 delay-400">
               <button
                 type="submit"
-                disabled={formStatus === 'sending'}
-                className="rounded-md bg-[var(--color-companyBlue)] px-4 py-2.5
-                           text-sm font-medium text-white shadow
-                           hover:bg-[var(--color-companyBlue)]/90 transition
-                           disabled:opacity-70"
+                disabled={formStatus === 'sending' || !formData.firstName || !formData.email || !formData.message}
+                className={`group relative w-full overflow-hidden font-medium py-4 px-8 rounded-2xl
+                           transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]
+                           disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100
+                           flex items-center justify-center gap-3 shadow-lg hover:shadow-xl
+                           ${formStatus === 'sending' 
+                             ? 'bg-slate-600 dark:bg-slate-500 border-2 border-transparent' 
+                             : 'bg-slate-700 dark:bg-slate-600 hover:bg-slate-600 dark:hover:bg-slate-500 border border-transparent hover:border-slate-500/30 dark:hover:border-slate-400/30'
+                           } text-white`}
               >
-                {formStatus === 'sending' ? 'Sending…' : t.contactSendMessageButton}
+                {/* Animated border for sending state */}
+                {formStatus === 'sending' && (
+                  <div className="absolute inset-0 rounded-2xl">
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 
+                                    bg-[length:300%_300%] animate-[gradient_2s_ease-in-out_infinite] opacity-60" />
+                    <div className="absolute inset-[2px] rounded-2xl bg-slate-600 dark:bg-slate-500" />
+                  </div>
+                )}
+                
+                {/* Content */}
+                <div className="relative z-10 flex items-center gap-3">
+                  {formStatus === 'sending' ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Sending...</span>
+                    </>
+                  ) : formStatus === 'success' ? (
+                    <>
+                      <CheckCircle size={18} className="text-green-400 animate-in zoom-in duration-300" />
+                      <span>Message Sent!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send size={18} className="transition-transform duration-300 group-hover:translate-x-1" />
+                      <span>{t.contactSendMessageButton}</span>
+                    </>
+                  )}
+                </div>
               </button>
 
+              {/* Status messages */}
               {formStatus === 'success' && (
-                <p className="text-sm text-green-600 dark:text-green-400">
-                  {t.contactFormSuccess}
-                </p>
+                <div className="flex items-center gap-4 p-4 bg-green-50/80 dark:bg-green-900/30 
+                                border border-green-200/50 dark:border-green-800/50 rounded-2xl backdrop-blur-sm
+                                animate-in slide-in-from-bottom-4 duration-500">
+                  <CheckCircle size={20} className="text-green-600 dark:text-green-400 flex-shrink-0 animate-in zoom-in duration-300" />
+                  <p className="text-green-700 dark:text-green-300">
+                    {t.contactFormSuccess}
+                  </p>
+                </div>
               )}
+
               {formStatus === 'error' && (
-                <p className="text-sm text-red-600 dark:text-red-400">
-                  {t.contactFormError}
-                </p>
+                <div className="flex items-center gap-4 p-4 bg-red-50/80 dark:bg-red-900/30 
+                                border border-red-200/50 dark:border-red-800/50 rounded-2xl backdrop-blur-sm
+                                animate-in slide-in-from-bottom-4 duration-500">
+                  <AlertCircle size={20} className="text-red-600 dark:text-red-400 flex-shrink-0 animate-bounce" />
+                  <p className="text-red-700 dark:text-red-300">
+                    {t.contactFormError}
+                  </p>
+                </div>
               )}
             </div>
           </form>
@@ -158,61 +286,84 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose }) => {
   );
 };
 
-/* ───────────────── helper components ───────────────── */
+/* ───────────────── Helper Components ───────────────── */
 
-const InfoLine = ({ icon, text }:{
+const ContactInfoItem = ({ icon, value }: {
   icon: React.ReactNode;
-  text: React.ReactNode;
+  value: React.ReactNode;
 }) => (
-  <div className="flex gap-x-4">
-    <dt className="flex-none">{icon}</dt>
-    <dd>{text}</dd>
+  <div className="group flex items-start gap-4 p-2 rounded-xl transition-all duration-300 
+                  hover:bg-slate-300/50 dark:hover:bg-slate-700/50 hover:scale-105 cursor-default">
+    <div className="flex-shrink-0 p-3 text-[var(--color-companyBlue)] bg-slate-200/80 dark:bg-slate-700/80 
+                    rounded-xl shadow-sm group-hover:shadow-md transition-all duration-300 backdrop-blur-sm">
+      {icon}
+    </div>
+    <div className="text-slate-600 dark:text-slate-300 leading-relaxed pt-2">
+      {value}
+    </div>
   </div>
 );
 
-const Input = ({
-  label, name, value, onChange, type='text', className='', txt, bg, ring
-}:{
-  label:string; name:string; value:string;
-  onChange: (e:ChangeEvent<HTMLInputElement>)=>void;
-  type?:string; className?:string;
-  txt:string; bg:string; ring:string;
+const MinimalInput = ({
+  label, name, value, onChange, type = 'text'
+}: {
+  label: string; name: string; value: string;
+  onChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  type?: string;
 }) => (
-  <div className={className}>
-    <label htmlFor={name} className={`block text-sm font-semibold ${txt}`}>{label}</label>
+  <div className="group">
+    <label htmlFor={name} className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-3 
+                                    transition-colors duration-300 group-focus-within:text-[var(--color-companyBlue)]">
+      {label}
+    </label>
     <input
-      id={name} name={name} type={type} autoComplete="off"
-      value={value} onChange={onChange} required
-      className={`mt-2 block w-full rounded-md border-0 px-3 py-2
-                  ${bg} ${txt} shadow-sm ring-1 ring-inset ${ring}
-                  placeholder:text-slate-400 dark:placeholder:text-slate-500
-                  focus:ring-2 focus:ring-[var(--color-companyBlue)]
-                  sm:text-sm`}
+      id={name}
+      name={name}
+      type={type}
+      value={value}
+      onChange={onChange}
+      required
+      className="w-full px-4 py-4 border border-slate-300/60 dark:border-slate-500/60 rounded-2xl
+                 bg-slate-50/80 dark:bg-slate-700/80 backdrop-blur-sm
+                 text-slate-800 dark:text-slate-100
+                 placeholder:text-slate-500 dark:placeholder:text-slate-400
+                 focus:outline-none focus:ring-2 focus:ring-[var(--color-companyBlue)]/30 
+                 focus:border-[var(--color-companyBlue)] focus:bg-slate-50 dark:focus:bg-slate-700
+                 transition-all duration-300 hover:border-slate-400 dark:hover:border-slate-400
+                 hover:shadow-sm focus:shadow-md hover:bg-slate-100/90 dark:hover:bg-slate-700/90"
     />
   </div>
 );
 
-const TextArea = ({
-  label, name, value, onChange, rows=4, className='', txt, bg, ring
-}:{
-  label:string; name:string; value:string;
-  onChange:(e:ChangeEvent<HTMLTextAreaElement>)=>void;
-  rows?:number; className?:string;
-  txt:string; bg:string; ring:string;
+const MinimalTextArea = ({
+  label, name, value, onChange, rows = 4
+}: {
+  label: string; name: string; value: string;
+  onChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
+  rows?: number;
 }) => (
-  <div className={className}>
-    <label htmlFor={name} className={`block text-sm font-semibold ${txt}`}>{label}</label>
+  <div className="group">
+    <label htmlFor={name} className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-3
+                                    transition-colors duration-300 group-focus-within:text-[var(--color-companyBlue)]">
+      {label}
+    </label>
     <textarea
-      id={name} name={name} rows={rows}
-      value={value} onChange={onChange} required
-      className={`mt-2 block w-full rounded-md border-0 px-3 py-2
-                  ${bg} ${txt} shadow-sm ring-1 ring-inset ${ring}
-                  placeholder:text-slate-400 dark:placeholder:text-slate-500
-                  focus:ring-2 focus:ring-[var(--color-companyBlue)]
-                  sm:text-sm`}
+      id={name}
+      name={name}
+      rows={rows}
+      value={value}
+      onChange={onChange}
+      required
+      className="w-full px-4 py-4 border border-slate-300/60 dark:border-slate-500/60 rounded-2xl
+                 bg-slate-50/80 dark:bg-slate-700/80 backdrop-blur-sm
+                 text-slate-800 dark:text-slate-100
+                 placeholder:text-slate-500 dark:placeholder:text-slate-400
+                 focus:outline-none focus:ring-2 focus:ring-[var(--color-companyBlue)]/30 
+                 focus:border-[var(--color-companyBlue)] focus:bg-slate-50 dark:focus:bg-slate-700
+                 transition-all duration-300 resize-none hover:border-slate-400 dark:hover:border-slate-400
+                 hover:shadow-sm focus:shadow-md hover:bg-slate-100/90 dark:hover:bg-slate-700/90"
     />
   </div>
 );
 
 export default ContactModal;
-
