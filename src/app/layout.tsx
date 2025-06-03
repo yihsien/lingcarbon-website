@@ -6,6 +6,11 @@ import { LanguageProvider } from '@/components/LanguageProvider';
 
 export const metadata: Metadata = {
   title: 'LINGCARBON - Sustainable Carbon Solutions',
+  icons: {
+    icon: '/Favicon.png',
+    shortcut: '/Favicon.png',
+    apple: '/Favicon.png',
+  },
   description:
     'LINGCARBON empowers organizations with cutting-edge services for carbon accounting, footprint calculation, and achieving carbon neutrality.',
 };
