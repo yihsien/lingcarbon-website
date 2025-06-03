@@ -31,7 +31,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({ onContactClick }) => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center z-10 relative">
         {/* Title without emerge animations */}
         <div>
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight"> 
+          <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-snug"> 
             <span className="block text-slate-800 dark:text-slate-100">
               {t.heroTitle1}
             </span>

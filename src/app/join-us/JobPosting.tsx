@@ -40,7 +40,7 @@ export default function JobPosting({
     (language === 'zh' ? '查看職缺' : 'View Posting');
   
   return (
-    <div className="group relative bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-600 rounded-3xl p-8 transition-all duration-500 ease-out hover:shadow-2xl hover:shadow-slate-900/10 dark:hover:shadow-black/30 hover:-translate-y-3 hover:scale-[1.02]">
+    <div className="group relative bg-slate-200 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-600 rounded-3xl p-8 transition-all duration-500 ease-out hover:shadow-2xl hover:shadow-slate-900/10 dark:hover:shadow-black/30 hover:-translate-y-3 hover:scale-[1.02]">
       
       {/* Enhanced gradient overlay on hover */}
       <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-slate-50/80 via-white/20 to-transparent dark:from-slate-800/50 dark:via-slate-700/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
