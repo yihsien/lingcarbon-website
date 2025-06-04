@@ -58,10 +58,11 @@ export default function UploadPage() {
     });
 
     setErrors((prev) => [...prev, ...newErrors]);
-    setFiles((prev) => [...prev, ...newFiles]);
-    setStatus((prev) =>
-      [...prev, ...newFiles].length ? 'ready' : prev
-    );
+    setFiles((prev) => {
+      const updated = [...prev, ...newFiles];
+      setStatus((prevStatus) => (updated.length ? 'ready' : prevStatus));
+      return updated;
+    });
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
