@@ -150,7 +150,7 @@ export const translations = {
     teamStephenBio: "Former Bloomberg AI engineering manager now helping businesses reach net‑zero.",
 
     teamWilliamName: "William Lu",
-    teamWilliamRole: "Principle Carbon Consultant",
+    teamWilliamRole: "Principal Carbon Consultant",
     teamWilliamBio: "Experienced carbon management consultant with a decade of expertise in GHG inventories and carbon strategies.",
     teamWilliamEducation: "M.S. in Occupational Safety and Health, China Medical University",
 
