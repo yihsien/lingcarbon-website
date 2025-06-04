@@ -90,15 +90,25 @@ export default function UploadPage() {
 
     setStatus('uploading');
 
+    const newErrors: string[] = [];
+
     for (const f of files) {
       const fd = new FormData();
       fd.append('file', f, f.name);
 
-      const res = await fetch('/api/upload', { method: 'POST', body: fd });
-      if (!res.ok) {
-        const { error } = await res.json().catch(() => ({ error: '上傳失敗' }));
-        setErrors(prev => [...prev, `${f.name}: ${error}`]);
+      try {
+        const res = await fetch('/api/upload', { method: 'POST', body: fd });
+        if (!res.ok) {
+          const { error } = await res.json().catch(() => ({ error: '上傳失敗' }));
+          newErrors.push(`${f.name}: ${error}`);
+        }
+      } catch (err) {
+        newErrors.push(`${f.name}: ${String(err)}`);
       }
+    }
+
+    if (newErrors.length > 0) {
+      setErrors(prev => [...prev, ...newErrors]);
     }
 
     setFiles([]);
