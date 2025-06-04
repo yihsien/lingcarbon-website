@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link'; // Use Next.js Link for navigation
 import { ChevronDown, ClipboardList, Calculator, Leaf, Target, Award, Users, Briefcase} from 'lucide-react';
 //import { Newspaper, BookOpen, HelpCircle } from 'lucide-react';
@@ -40,12 +40,12 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [disableDropdownUntilLeave, setDisableDropdownUntilLeave] = useState(false);
+
+  const dropdownTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Reset dropdown states when navigating
   const resetDropdownStates = () => {
     setOpenDropdown(null);
-    setDisableDropdownUntilLeave(false);
     setIsMobileMenuOpen(false);
   };
 
@@ -184,18 +184,28 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
             />
           </Link>
           
-          <nav className="hidden md:flex items-center space-x-1">
+          <nav
+            className="hidden md:flex items-center space-x-1"
+            onMouseLeave={() => {
+              dropdownTimeout.current = setTimeout(() => {
+                setOpenDropdown(null);
+              }, 200);
+            }}
+            onMouseEnter={() => {
+              if (dropdownTimeout.current) clearTimeout(dropdownTimeout.current);
+            }}
+          >
             {navItemsData.map((item) => (
               <div
                 key={item.name}
                 className="relative"
-                onMouseEnter={item.dropdownItems ? () => {
-                  if (!disableDropdownUntilLeave) setOpenDropdown(item.name);
-                } : undefined}
-                onMouseLeave={item.dropdownItems ? () => {
-                  setOpenDropdown(null);
-                  setDisableDropdownUntilLeave(false);
-                } : undefined}
+                onMouseEnter={() => {
+                  if (item.dropdownItems) {
+                    setOpenDropdown(item.name);
+                  } else {
+                    setOpenDropdown(null);
+                  }
+                }}
               >
                 {item.dropdownItems ? (
                   <>
@@ -203,7 +213,6 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                       href={item.href}
                       onClick={(e) => {
                         e.preventDefault();
-                        
                         if (item.href.includes('#')) {
                           scrollToSection(item.href);
                         } else {
@@ -221,25 +230,25 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                         }`}
                       />
                     </Link>
-                    {openDropdown === item.name && !disableDropdownUntilLeave && (
+                    {openDropdown === item.name && (
                       <div
-                        className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 ${
+                        onMouseEnter={() => setOpenDropdown(item.name)}
+                        onMouseLeave={() => setOpenDropdown(null)}
+                        className={`absolute top-full left-1/2 -translate-x-1/2 mt-1 ${
                           item.vertical
                             ? 'w-80'
                             : item.dropdownItems.length <= 2
                               ? 'w-80'
                               : 'w-screen max-w-4xl'
-                        } animate-in fade-in-0 zoom-in-95 duration-200`}
+                        } animate-in fade-in-0 zoom-in-95 duration-200 p-2`}
                         style={{
                           animation: 'dropdownAppear 0.2s ease-out forwards'
                         }}
                       >
                         <div className="overflow-hidden rounded-xl bg-gray-200/100 dark:bg-gray-900/100 backdrop-blur-xl shadow-2xl ring-1 ring-gray-900/5 dark:ring-gray-100/10 border border-gray-200/20 dark:border-gray-700/30">
-                          {/* Subtle gradient overlay */}
                           <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-companyBlue-light)]/20 to-transparent dark:from-[var(--color-companyBlue)]/10 pointer-events-none"></div>
-                          
                           <div
-                            className={`relative p-6 ${
+                            className={`relative p-4 ${
                               item.vertical
                                 ? 'flex flex-col space-y-1'
                                 : item.dropdownItems.length <= 2
@@ -256,7 +265,6 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                                   onClick={(e) => {
                                     e.preventDefault();
                                     resetDropdownStates();
-                                    
                                     if (subItem.href.includes('#')) {
                                       scrollToSection(subItem.href);
                                     } else {
@@ -269,21 +277,17 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                                     animation: 'slideInUp 0.3s ease-out forwards'
                                   }}
                                 >
-                                  {/* Icon container with tech-style glow */}
                                   <div className="relative">
                                     <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--color-companyBlue)] to-[var(--color-companyBlue)]/80 dark:from-[var(--color-companyBlue)] dark:to-[var(--color-companyBlue)]/70 shadow-lg group-hover:shadow-xl group-hover:shadow-[var(--color-companyBlue)]/25 transition-all duration-200">
                                       <Icon className="h-5 w-5 text-white" />
                                     </div>
-                                    {/* Subtle glow effect */}
                                     <div className="absolute inset-0 rounded-lg bg-[var(--color-companyBlue)]/20 opacity-0 group-hover:opacity-100 transition-opacity duration-200 blur-sm"></div>
                                   </div>
-                                  
                                   <div className="ml-4 flex-1">
                                     <div className="flex items-center">
                                       <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 group-hover:text-[var(--color-companyBlue)] transition-colors duration-200">
                                         {subItem.name}
                                       </p>
-                                      {/* Subtle arrow indicator */}
                                       <svg 
                                         className="ml-2 h-3 w-3 text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200" 
                                         fill="none" 
@@ -301,10 +305,8 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                               );
                             })}
                           </div>
-                          
-                          {/* Enhanced CTA section */}
                           {item.showCTA !== false && item.dropdownItems.length > 2 && (
-                            <div className="relative border-t border-gray-200/40 dark:border-gray-700/40 bg-gradient-to-r from-gray-50/50 to-gray-100/30 dark:from-gray-800/50 dark:to-gray-900/30 px-6 py-4">
+                            <div className="relative border-t border-gray-200/40 dark:border-gray-700/40 bg-gradient-to-r from-gray-50/50 to-gray-100/30 dark:from-gray-800/50 dark:to-gray-900/30 px-4 py-4">
                               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
                                 <div className="flex-1">
                                   <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex items-center">
@@ -323,7 +325,6 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
                                   className="mt-3 sm:mt-0 sm:ml-6 shrink-0 relative overflow-hidden rounded-lg bg-gradient-to-r from-[var(--color-companyBlue)] to-[var(--color-companyBlue)]/80 px-4 py-2.5 text-xs font-semibold text-white shadow-lg hover:shadow-xl hover:shadow-[var(--color-companyBlue)]/25 transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-[var(--color-companyBlue)]/50 focus:ring-offset-2 dark:focus:ring-offset-gray-900"
                                 >
                                   <span className="relative z-10">{t.navContact}</span>
-                                  {/* Hover shimmer effect */}
                                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                                 </button>
                               </div>
