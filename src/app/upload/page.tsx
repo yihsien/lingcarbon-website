@@ -75,10 +75,11 @@ export default function UploadPage() {
   }
 
   function removeFile(index: number) {
-    setFiles(prev => prev.filter((_, i) => i !== index));
-    if (files.length === 1) {
-      setStatus('idle');
-    }
+    setFiles(prev => {
+      const updated = prev.filter((_, i) => i !== index);
+      if (!updated.length) setStatus('idle');
+      return updated;
+    });
   }
 
   function clearErrors() {
