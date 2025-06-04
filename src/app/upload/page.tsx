@@ -9,6 +9,7 @@ export default function UploadPage() {
   const [files, setFiles] = useState<File[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [status, setStatus] = useState<'idle' | 'ready' | 'uploading' | 'done'>('idle');
+  const [progress, setProgress] = useState<number>(0);
 
   // Filename demo state
   const [part1, setPart1] = useState('');
@@ -36,7 +37,7 @@ export default function UploadPage() {
     const pattern = /^GP0(?:0[1-9]|1[0-9]|2[0-2])_(?:0[1-9]|1[01])_(?:2025|2026)_(?:0[0-9]|1[0-2])(?:\.[A-Za-z0-9_-]+)?$/i;
 
     if (!pattern.test(f.name)) {
-      return '檔名格式不符，需為 GP001_01_2025_01.ext 且各段落需落在有效範圍內。';
+      return '檔名格式不符，需為 xxxx_xx_xxxx_xx.副檔名 且各段落需落在有效範圍內，請參考上方的編碼對照表。';
     }
 
     return null;
@@ -92,28 +93,68 @@ export default function UploadPage() {
     if (files.length === 0 || status === 'uploading') return;
 
     setStatus('uploading');
+    setProgress(0);
     setErrors([]); // clear any previous errors
-
-    console.log('FILES IN STATE:', files.map(f => f.name)); // dev trace
+    const startTime = Date.now();
 
     // Build one multipart payload with unique field names
     const fd = new FormData();
     files.forEach((f, i) => fd.append(`file${i}`, f, f.name));
 
-    try {
-      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/api/upload');
 
-      if (!res.ok) {
-        const { error, details } = await res.json().catch(() => ({ error: '上傳失敗', details: '' }));
-        throw new Error(details || error);
+    // Track progress
+    xhr.upload.onprogress = (e) => {
+      if (e.lengthComputable) {
+        const pct = Math.round((e.loaded / e.total) * 100);
+        setProgress(pct);
       }
+    };
 
-      setFiles([]);
-      setStatus('done');
-    } catch (err) {
-      setErrors(prev => [...prev, String(err)]);
-      setStatus('idle');
-    }
+    xhr.onload = () => {
+      const finish = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          setFiles([]);
+          setStatus('done');
+          setProgress(100);
+        } else {
+          const err =
+            (xhr.response && JSON.parse(xhr.response).error) ||
+            xhr.statusText ||
+            '上傳失敗';
+          setErrors((prev) => [...prev, err]);
+          setStatus('idle');
+          setProgress(0);
+        }
+      };
+
+      const elapsed = Date.now() - startTime;
+      const delay = Math.max(0, 1500 - elapsed); // ensure the progress bar shows ≥ 1.5 s
+      if (delay) {
+        setTimeout(finish, delay);
+      } else {
+        finish();
+      }
+    };
+
+    xhr.onerror = () => {
+      const finish = () => {
+        setErrors((prev) => [...prev, '網路錯誤，請稍後再試']);
+        setStatus('idle');
+        setProgress(0);
+      };
+
+      const elapsed = Date.now() - startTime;
+      const delay = Math.max(0, 1500 - elapsed); // keep progress bar visible ≥ 1.5 s
+      if (delay) {
+        setTimeout(finish, delay);
+      } else {
+        finish();
+      }
+    };
+
+    xhr.send(fd);
   }
 
   const getStatusIcon = () => {
@@ -399,6 +440,20 @@ export default function UploadPage() {
               {status === 'done' && '上傳完成！'}
             </span>
           </div>
+
+          {status === 'uploading' && (
+            <div className="w-full max-w-xl mx-auto mb-6">
+              <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+                <div
+                  className="h-3 bg-gradient-to-r from-blue-600 to-cyan-600 transition-all duration-200"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <p className="mt-2 text-sm text-center text-slate-600 dark:text-slate-400">
+                {progress}%
+              </p>
+            </div>
+          )}
 
           {/* Drag & Drop Area */}
           <div

@@ -1,6 +1,15 @@
 import { google } from 'googleapis';
 import { NextRequest, NextResponse } from 'next/server';
-import { PassThrough } from 'stream';
+import { Readable } from 'stream';
+import Busboy from 'busboy';
+import type { FileInfo } from 'busboy';
+
+// If your TS config complains about the default export of `busboy`,
+// enable `esModuleInterop` or suppress like this:
+//   // @ts-ignore-next-line
+//   import Busboy from 'busboy';
+// We already have esModuleInterop enabled in `tsconfig.json`. If not,
+// uncomment the next directive.
 
 /*  ─── Settings ─────────────────────────────────────────────────── */
 
@@ -49,144 +58,134 @@ function getDriveClient() {
 // ── Drive client reused across invocations ────────────────
 const drive = getDriveClient();
 
-/** Converts a Buffer into a Node.js readable stream. */
-function bufferToStream(buf: Buffer) {
-  const stream = new PassThrough();
-  stream.end(buf);
-  return stream;
-}
 
 /*  ─── POST /api/upload ─────────────────────────────────────────── */
 
 export async function POST(req: NextRequest) {
-  try {
-    // 1. Pull files out of the multipart body
-    const form = await req.formData();
-    const files: File[] = [];
-    
-    // Fixed: Collect all files properly
-    for (const [, value] of form.entries()) {
-      if (value instanceof File) {
-        files.push(value);
-        console.log(`Found file: ${value.name} (${value.size} bytes)`);
-      }
-    }
-
-    if (!files.length) {
-      return NextResponse.json({ error: 'No files received' }, { status: 400 });
-    }
-
-    console.log(`Processing ${files.length} files`);
-
-    // 2. Ensure Drive folder env present
-    const folderId = process.env.GDRIVE_TARGET_FOLDER;
-    if (!folderId) {
-      return NextResponse.json(
-        { error: 'GDRIVE_TARGET_FOLDER env missing' },
-        { status: 500 },
-      );
-    }
-
-    // 3. Process and validate files
-    const processedFiles: { name: string; mime: string; buffer: Buffer }[] = [];
-    
-    for (const file of files) {
-      const name = file.name || 'upload.bin';
-
-      // Validate filename
-      if (invalidChars.test(name) || name.length > MAX_LEN) {
-        console.error(`Invalid filename: ${name}`);
-        return NextResponse.json({ error: `Invalid file name: ${name}` }, { status: 400 });
-      }
-
-      try {
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const mime = file.type || 'application/octet-stream';
-
-        processedFiles.push({ name, mime, buffer });
-        console.log(`Processed file: ${name} (${buffer.length} bytes, ${mime})`);
-      } catch (error) {
-        console.error(`Error processing file ${name}:`, error);
-        return NextResponse.json({ error: `Failed to process file: ${name}` }, { status: 400 });
-      }
-    }
-
-    // 4. Upload all files sequentially with better error handling
-    const uploadResults: { name: string; success: boolean; error?: string }[] = [];
-    
-    for (const [idx, { name, mime, buffer }] of processedFiles.entries()) {
-      console.log(`--- Uploading file ${idx + 1}/${processedFiles.length}: ${name}`);
-
-      try {
-        // Create a fresh stream for each upload
-        const stream = bufferToStream(buffer);
-
-        const response = await drive.files.create({
-          requestBody: {
-            name,
-            parents: [folderId],
-            mimeType: mime,
-          },
-          media: { 
-            mimeType: mime, 
-            body: stream 
-          },
-          supportsAllDrives: true,
-        });
-
-        console.log(`✓ Successfully uploaded ${name} (ID: ${response.data.id})`);
-        uploadResults.push({ name, success: true });
-
-        // Add delay between uploads to avoid rate limiting
-        if (idx < processedFiles.length - 1) {
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        }
-
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`✗ Failed to upload ${name}:`, errorMessage);
-        uploadResults.push({ name, success: false, error: errorMessage });
-        
-        // Continue with other files instead of failing completely
-        // If you want to fail fast, uncomment the next line:
-        // throw error;
-      }
-    }
-
-    // 5. Check results and return appropriate response
-    const successCount = uploadResults.filter(r => r.success).length;
-    const failureCount = uploadResults.length - successCount;
-
-    if (failureCount === 0) {
-      console.log(`All ${successCount} files uploaded successfully`);
-      return NextResponse.json({ 
-        success: true, 
-        message: `Successfully uploaded ${successCount} files`,
-        results: uploadResults 
-      });
-    } else if (successCount > 0) {
-      console.log(`Partial success: ${successCount} succeeded, ${failureCount} failed`);
-      return NextResponse.json({ 
-        success: false,
-        message: `Partial upload: ${successCount} succeeded, ${failureCount} failed`,
-        results: uploadResults 
-      }, { status: 207 }); // 207 Multi-Status
-    } else {
-      console.log('All uploads failed');
-      return NextResponse.json({ 
-        success: false,
-        message: 'All uploads failed',
-        results: uploadResults 
-      }, { status: 500 });
-    }
-
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    console.error('Upload Route Error:', message);
-
+  // 1. Ensure Drive folder env present
+  const folderId = process.env.GDRIVE_TARGET_FOLDER;
+  if (!folderId) {
     return NextResponse.json(
-      { error: 'Upload failed', details: message },
+      { error: 'GDRIVE_TARGET_FOLDER env missing' },
       { status: 500 },
     );
   }
+
+  // 2. Stream‑parse the multipart body with Busboy
+  return new Promise<NextResponse>((resolve, reject) => {
+    const results: { name: string; success: boolean; error?: string }[] = [];
+
+    // Cast because Busboy expects a plain object map<string,string>
+    // Headers.getAll isn't available in Node18 ↔ web spec mismatch,
+    // so we collect the *first* value for each header key.
+    const headerEntries: Record<string, string> = {};
+    req.headers.forEach((value, key) => {
+      headerEntries[key.toLowerCase()] = value;
+    });
+    const bb = Busboy({ headers: headerEntries });
+
+    bb.on('file', (_field: string, file: NodeJS.ReadableStream, info: FileInfo) => {
+      const { filename = 'upload.bin', mimeType = 'application/octet-stream' } = info;
+
+      // Validate filename
+      if (invalidChars.test(filename) || filename.length > MAX_LEN) {
+        file.resume(); // drain stream
+        results.push({ name: filename, success: false, error: 'Invalid file name' });
+        return;
+      }
+
+      // Directly pipe the incoming stream to Google Drive
+      drive.files.create({
+        requestBody: {
+          name: filename,
+          parents: [folderId],
+          mimeType,
+        },
+        media: {
+          mimeType,
+          body: file,       // ← stream upload
+        },
+        supportsAllDrives: true,
+      })
+      .then(() => {
+        results.push({ name: filename, success: true });
+      })
+      .catch((err: Error) => {
+        results.push({ name: filename, success: false, error: err.message });
+      });
+    });
+
+    bb.on('finish', () => {
+      const successCount = results.filter(r => r.success).length;
+      const failureCount = results.length - successCount;
+
+      if (failureCount === 0) {
+        resolve(
+          NextResponse.json({
+            success: true,
+            message: `Successfully uploaded ${successCount} files`,
+            results,
+          }),
+        );
+      } else if (successCount > 0) {
+        resolve(
+          NextResponse.json({
+            success: false,
+            message: `Partial upload: ${successCount} succeeded, ${failureCount} failed`,
+            results,
+          }, { status: 207 }),
+        );
+      } else {
+        resolve(
+          NextResponse.json({
+            success: false,
+            message: 'All uploads failed',
+            results,
+          }, { status: 500 }),
+        );
+      }
+    });
+
+    bb.on('error', (err) => {
+      reject(err);
+    });
+
+    // Node 20 has Readable.fromWeb, Node ≤18 may not include it in
+    // @types/node yet. Provide a safe fallback.
+    function toNodeStream(web: ReadableStream<Uint8Array>) {
+      // Narrow the static `fromWeb` method without using `any`
+      const fromWeb = (Readable as typeof Readable & {
+        fromWeb?: (stream: ReadableStream<Uint8Array>) => NodeJS.ReadableStream;
+      }).fromWeb;
+
+      if (typeof fromWeb === 'function') {
+        return fromWeb(web);
+      }
+      // Fallback: convert WebReadableStream to async iterator
+      const iterator = web.getReader();
+      return Readable.from(
+        (async function* () {
+          while (true) {
+            const { done, value } = await iterator.read();
+            if (done) break;
+            if (value) yield Buffer.from(value);
+          }
+        })(),
+      );
+    }
+    const nodeStream = toNodeStream(
+      req.body as unknown as ReadableStream<Uint8Array>,
+    );
+    nodeStream.pipe(bb);
+  }).catch((err: Error) => {
+    console.error('Upload Route Error:', err.message);
+    return NextResponse.json(
+      { error: 'Upload failed', details: err.message },
+      { status: 500 },
+    );
+  });
 }
+/*  ─── Dev Setup Reminder ─────────────────────────────────────────
+  pnpm add busboy
+  pnpm add -D @types/busboy      # if your tsconfig doesn't pick up bundled types
+  ──────────────────────────────────────────────────────────────── */
