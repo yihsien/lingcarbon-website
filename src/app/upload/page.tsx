@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Upload, FileText, CheckCircle, AlertCircle, X, Cloud, Zap } from 'lucide-react';
 import Header from '@/components/Header';
+import Image from 'next/image';
 
 export default function UploadPage() {
   const [files, setFiles] = useState<File[]>([]);
@@ -91,30 +92,28 @@ export default function UploadPage() {
     if (files.length === 0 || status === 'uploading') return;
 
     setStatus('uploading');
+    setErrors([]); // clear any previous errors
 
-    const newErrors: string[] = [];
+    console.log('FILES IN STATE:', files.map(f => f.name)); // dev trace
 
-    for (const f of files) {
-      const fd = new FormData();
-      fd.append('file', f, f.name);
+    // Build one multipart payload with unique field names
+    const fd = new FormData();
+    files.forEach((f, i) => fd.append(`file${i}`, f, f.name));
 
-      try {
-        const res = await fetch('/api/upload', { method: 'POST', body: fd });
-        if (!res.ok) {
-          const { error } = await res.json().catch(() => ({ error: '上傳失敗' }));
-          newErrors.push(`${f.name}: ${error}`);
-        }
-      } catch (err) {
-        newErrors.push(`${f.name}: ${String(err)}`);
+    try {
+      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+
+      if (!res.ok) {
+        const { error, details } = await res.json().catch(() => ({ error: '上傳失敗', details: '' }));
+        throw new Error(details || error);
       }
-    }
 
-    if (newErrors.length > 0) {
-      setErrors(prev => [...prev, ...newErrors]);
+      setFiles([]);
+      setStatus('done');
+    } catch (err) {
+      setErrors(prev => [...prev, String(err)]);
+      setStatus('idle');
     }
-
-    setFiles([]);
-    setStatus('done');
   }
 
   const getStatusIcon = () => {
@@ -149,16 +148,28 @@ export default function UploadPage() {
       <div className="min-h-screen">
       {/* Hero Section */}
       <section className="pt-20 pb-16 text-center">
-        <div className="mx-auto max-w-4xl px-6 lg:px-8">
+        {/* Client Logo */}
+        <div className="flex justify-center mb-2">
+          <Image
+            src="/ho-hsin-logo.png"   // put your logo file in /public/client-logo.png
+            alt="Client Company Logo"
+            width={180}
+            height={90}
+            priority
+          />
+        </div>
+        <div className="mt-2 mx-auto max-w-4xl px-6 lg:px-8">
+          {/*  
           <div className="flex justify-center items-center gap-3 mb-6">
             <div className="p-3 rounded-full bg-gradient-to-br from-blue-500 to-cyan-500 text-white shadow-lg">
               <Upload size={32} />
             </div>
           </div>
+          */}
           <h1 className="text-4xl sm:text-5xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-blue-800 to-cyan-700 dark:from-slate-100 dark:via-blue-200 dark:to-cyan-200 bg-clip-text text-transparent">
             上傳您的活動數據資料
           </h1>
-          <p className="mt-6 text-lg leading-8 text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+          <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
             檔名格式：GP001_01_2025_01.副檔名<br />
             第一段 GP001–GP022，第二段 01–11，年份 2025/2026，月份 00–12
           </p>
