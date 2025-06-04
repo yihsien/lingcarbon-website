@@ -25,7 +25,7 @@ export default function OurTeamPage() {
     },
     {
       name: translations[language].teamWilliamName ?? 'William Lu',
-      role: translations[language].teamWilliamRole ?? 'Principle Carbon Consultant',
+      role: translations[language].teamWilliamRole ?? 'Principal Carbon Consultant',
       education: translations[language].teamWilliamEducation ?? 'M.S. in Occupational Safety and Health, China Medical University',
       headshot: '/img/team/william-color.jpg',
       headshotColor: '/img/team/william-color.jpg',
