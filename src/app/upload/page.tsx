@@ -18,6 +18,87 @@ export default function UploadPage() {
   const [part4, setPart4] = useState('');
   const [copied, setCopied] = useState(false);
 
+  // Queue of files awaiting filename construction
+  const [renameQueue, setRenameQueue] = useState<File[]>([]);
+
+  // File that is currently in the rename modal
+  const [renameModal, setRenameModal] = useState<File | null>(null);
+  // Preview URL for image files shown in rename modal
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  useEffect(() => {
+    if (renameModal && renameModal.type.startsWith('image/')) {
+      const url = URL.createObjectURL(renameModal);
+      setPreviewUrl(url);
+      return () => URL.revokeObjectURL(url);
+    }
+    setPreviewUrl(null);
+  }, [renameModal]);
+  // When the current modal closes, automatically open the next file in queue
+  useEffect(() => {
+    if (!renameModal && renameQueue.length) {
+      setRenameModal(renameQueue[0]);
+      setRenameQueue(prev => prev.slice(1));
+    }
+  }, [renameModal, renameQueue]);
+
+  // Dropdown option lists [value, label]
+  const LOCATION_OPTIONS: [string, string][] = [
+    ['GP001', 'GP001 台北車廠 (停車暨保修廠)'],
+    ['GP002', 'GP002 台中車廠 (停車暨保修廠)'],
+    ['GP003', 'GP003 台南車廠 (停車暨保修廠)'],
+    ['GP004', 'GP004 高雄車廠 (停車暨保修廠)'],
+    ['GP005', 'GP005 臺北轉運站 (場站)'],
+    ['GP006', 'GP006 板橋客運站 (場站)'],
+    ['GP007', 'GP007 三重站 (場站)'],
+    ['GP008', 'GP008 桃園站 (場站)'],
+    ['GP009', 'GP009 中壢祐民醫院站 (場站)'],
+    ['GP010', 'GP010 新竹站 (場站)'],
+    ['GP011', 'GP011 朝馬轉運站 (場站)'],
+    ['GP012', 'GP012 嘉義轉運站 (場站)'],
+    ['GP013', 'GP013 新營轉運站 (場站)'],
+    ['GP014', 'GP014 麻豆轉運站 (場站)'],
+    ['GP015', 'GP015 永康轉運站 (場站)'],
+    ['GP016', 'GP016 臺南轉運站 (場站)'],
+    ['GP017', 'GP017 楠梓站 (場站)'],
+    ['GP018', 'GP018 九如站 (場站)'],
+    ['GP019', 'GP019 中正站 (場站)'],
+    ['GP020', 'GP020 建國客運站 (場站)'],
+    ['GP021', 'GP021 佳里辦公室 (辦公室)'],
+    ['GP022', 'GP022 車控中心 (辦公室)'],
+  ];
+  const ACTIVITY_OPTIONS: [string, string][] = [
+    ['01', '01 甲類大客車加油紀錄'],
+    ['02', '02 公務車加油紀錄'],
+    ['03', '03 尿素水添加紀錄'],
+    ['04', '04 緊急發電機柴油加油紀錄'],
+    ['05', '05 乙炔鋼瓶'],
+    ['06', '06 天然氣'],
+    ['07', '07 補裝瓦斯'],
+    ['08', '08 冰箱／冷氣／飲水機設備銘牌'],
+    ['09', '09 車用冷媒添加紀錄'],
+    ['10', '10 人員活動－出勤紀錄'],
+    ['11', '11 電費單'],
+  ];
+  const YEAR_OPTIONS: [string, string][] = [
+    ['2025', '2025 年'],
+    ['2026', '2026 年'],
+  ];
+  const MONTH_OPTIONS: [string, string][] = [
+    ['00', '00 全年度'],
+    ['01', '01 一月'],
+    ['02', '02 二月'],
+    ['03', '03 三月'],
+    ['04', '04 四月'],
+    ['05', '05 五月'],
+    ['06', '06 六月'],
+    ['07', '07 七月'],
+    ['08', '08 八月'],
+    ['09', '09 九月'],
+    ['10', '10 十月'],
+    ['11', '11 十一月'],
+    ['12', '12 十二月'],
+  ];
+
   const displayFileName = `${part1 || 'xxxxx'}_${part2 || 'xx'}_${part3 || 'xxxx'}_${part4 || 'xx'}`;
   const isFileNameComplete = Boolean(part1 && part2 && part3 && part4);
 
@@ -26,45 +107,49 @@ export default function UploadPage() {
   }, [part1, part2, part3, part4]);
 
   /**
-   * Returns an error string if the filename is invalid; otherwise `null`.
+   * Returns true if the filename WITHOUT EXTENSION matches the required pattern.
+   * Pattern: GP001‑GP022 _ 01‑11 _ 2025/2026 _ 00‑12
    */
-  function validateName(f: File): string | null {
-    const invalidChars = /[\\/?%*:|"<>]/;
-    if (invalidChars.test(f.name)) return '檔名含有不允許的特殊字元。';
-    if (f.name.length > 255) return '檔名過長 (必須 ≤ 255 字元)。';
-
-    // 必須符合：GP001_01_2025_01.ext
-    const pattern = /^GP0(?:0[1-9]|1[0-9]|2[0-2])_(?:0[1-9]|1[01])_(?:2025|2026)_(?:0[0-9]|1[0-2])(?:\.[A-Za-z0-9_-]+)?$/i;
-
-    if (!pattern.test(f.name)) {
-      return '檔名格式不符，需為 xxxx_xx_xxxx_xx.副檔名 且各段落需落在有效範圍內，請參考上方的編碼對照表。';
-    }
-
-    return null;
+  function isValidFileName(nameWithoutExt: string): boolean {
+    return /^GP0(?:0[1-9]|1[0-9]|2[0-2])_(?:0[1-9]|1[01])_(?:2025|2026)_(?:0[0-9]|1[0-2])$/.test(
+      nameWithoutExt,
+    );
   }
 
-  /** Pushes new files into state after validation */
+  /** Adds new files; only invalid names go through rename flow */
   function addFiles(fileList: FileList | null) {
     if (!fileList) return;
+    const incoming = Array.from(fileList);
 
-    const newFiles: File[] = [];
-    const newErrors: string[] = [];
+    const toRename: File[] = [];
+    const validFiles: File[] = [];
 
-    Array.from(fileList).forEach((f) => {
-      const err = validateName(f);
-      if (err) {
-        newErrors.push(`${f.name}: ${err}`);
+    incoming.forEach((file) => {
+      const base = file.name.replace(/\.[^/.]+$/, ''); // strip extension
+      if (isValidFileName(base)) {
+        validFiles.push(file);          // already passes pattern
       } else {
-        newFiles.push(f);
+        toRename.push(file);            // needs filename construction
       }
     });
 
-    setErrors((prev) => [...prev, ...newErrors]);
-    setFiles((prev) => {
-      const updated = [...prev, ...newFiles];
-      setStatus((prevStatus) => (updated.length ? 'ready' : prevStatus));
-      return updated;
-    });
+    // Append valid files immediately
+    if (validFiles.length) {
+      setFiles((prev) => {
+        const updated = [...prev, ...validFiles];
+        setStatus('ready');
+        return updated;
+      });
+    }
+
+    // Queue the invalid files for modal
+    if (toRename.length) {
+      setRenameQueue((prev) => [...prev, ...toRename]);
+      if (!renameModal) {
+        setRenameModal(toRename[0]);
+        setRenameQueue((prev) => prev.slice(1));
+      }
+    }
   }
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -170,6 +255,26 @@ export default function UploadPage() {
     }
   };
 
+  function handleRenameConfirm() {
+    if (!renameModal || !isFileNameComplete) return;
+
+    const ext = renameModal.name.includes('.')
+      ? renameModal.name.substring(renameModal.name.lastIndexOf('.'))
+      : '';
+    const newName = `${part1}_${part2}_${part3}_${part4}${ext}`;
+    const renamed = new File([renameModal], newName, { type: renameModal.type });
+
+    setFiles(prev => [...prev, renamed]);
+    setStatus('ready');
+
+    // Reset selectors
+    setPart1('');
+    setPart2('');
+    setPart3('');
+    setPart4('');
+    setRenameModal(null);   // queue effect will open next file
+  }
+
   return (
     <>
       <Header onContactClick={() => { /* stub: not used on this page */ }} />
@@ -207,7 +312,7 @@ export default function UploadPage() {
             </div>
           </div>
           */}
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-blue-800 to-cyan-700 dark:from-slate-100 dark:via-blue-200 dark:to-cyan-200 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-blue-800 to-cyan-700 dark:from-slate-100 dark:via-blue-200 dark:to-cyan-200 bg-clip-text text-transparent">
             上傳您的活動數據資料
           </h1>
           <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
@@ -219,7 +324,7 @@ export default function UploadPage() {
 
       <main className="mx-auto max-w-7xl px-6 lg:px-8 pb-24">
         {/* Reference Tables */}
-        <div className="mb-16">
+        <div className="hidden sm:block mb-16">
           <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 text-center mb-8">
             參考編碼對照表
           </h2>
@@ -238,7 +343,7 @@ export default function UploadPage() {
                 });
               }}
               disabled={!isFileNameComplete}
-              className="px-4 py-2 bg-gradient-to-r from-slate-600 to-slate-800 text-white rounded-lg shadow disabled:opacity-40 disabled:cursor-not-allowed hover:from-slate-700 hover:to-slate-900 transition-colors"
+              className="hidden sm:inline-flex px-4 py-2 bg-gradient-to-r from-slate-600 to-slate-800 text-white rounded-lg shadow disabled:opacity-40 disabled:cursor-not-allowed hover:from-slate-700 hover:to-slate-900 transition-colors"
               title={isFileNameComplete ? '複製檔名' : '請先選取所有段落'}
             >
               {copied ? '檔名已複製成功!' : '複製檔名'}
@@ -287,11 +392,17 @@ export default function UploadPage() {
                       <tr
                         key={code}
                         onClick={() => setPart1(code)}
-                        className={`cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/30 ${
-                          idx % 2 === 0 ? 'bg-white dark:bg-slate-800/30' : 'bg-slate-50/50 dark:bg-slate-700/20'
+                        className={`cursor-pointer transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-700/30 ${
+                          part1 === code 
+                            ? 'bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 shadow-md ring-2 ring-blue-200 dark:ring-blue-800' 
+                            : idx % 2 === 0 
+                            ? 'bg-white dark:bg-slate-800/30' 
+                            : 'bg-slate-50/50 dark:bg-slate-700/20'
                         }`}
                       >
-                        <td className="px-4 py-3 text-sm font-mono font-semibold text-blue-600 dark:text-blue-400">{code}</td>
+                        <td className={`px-4 py-3 text-sm font-mono font-semibold ${
+                          part1 === code ? 'text-blue-700 dark:text-blue-300' : 'text-blue-600 dark:text-blue-400'
+                        }`}>{code}</td>
                         <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-300">{type}</td>
                         <td className="px-4 py-3 text-sm text-slate-800 dark:text-slate-200">{name}</td>
                       </tr>
@@ -331,11 +442,17 @@ export default function UploadPage() {
                       <tr
                         key={code}
                         onClick={() => setPart2(code)}
-                        className={`cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/30 ${
-                          idx % 2 === 0 ? 'bg-white dark:bg-slate-800/30' : 'bg-slate-50/50 dark:bg-slate-700/20'
+                        className={`cursor-pointer transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-700/30 ${
+                          part2 === code 
+                            ? 'bg-emerald-50 dark:bg-emerald-900/30 border-l-4 border-emerald-500 shadow-md ring-2 ring-emerald-200 dark:ring-emerald-800' 
+                            : idx % 2 === 0 
+                            ? 'bg-white dark:bg-slate-800/30' 
+                            : 'bg-slate-50/50 dark:bg-slate-700/20'
                         }`}
                       >
-                        <td className="px-4 py-3 text-sm font-mono font-semibold text-emerald-600 dark:text-emerald-400">{code}</td>
+                        <td className={`px-4 py-3 text-sm font-mono font-semibold ${
+                          part2 === code ? 'text-emerald-700 dark:text-emerald-300' : 'text-emerald-600 dark:text-emerald-400'
+                        }`}>{code}</td>
                         <td className="px-4 py-3 text-sm text-slate-800 dark:text-slate-200">{desc}</td>
                       </tr>
                     ))}
@@ -343,6 +460,7 @@ export default function UploadPage() {
                 </table>
               </div>
             </div>
+
             {/* Year Table */}
             <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
               <div className="bg-gradient-to-r from-purple-600 to-violet-600 px-6 py-4">
@@ -362,13 +480,17 @@ export default function UploadPage() {
                       <tr
                         key={year}
                         onClick={() => setPart3(year)}
-                        className={`cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/30 ${
-                          idx % 2 === 0
+                        className={`cursor-pointer transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-700/30 ${
+                          part3 === year 
+                            ? 'bg-purple-50 dark:bg-purple-900/30 border-l-4 border-purple-500 shadow-md ring-2 ring-purple-200 dark:ring-purple-800' 
+                            : idx % 2 === 0
                             ? 'bg-white dark:bg-slate-800/30'
                             : 'bg-slate-50/50 dark:bg-slate-700/20'
                         }`}
                       >
-                        <td className="px-4 py-3 text-sm font-mono font-semibold text-purple-600 dark:text-purple-400">
+                        <td className={`px-4 py-3 text-sm font-mono font-semibold ${
+                          part3 === year ? 'text-purple-700 dark:text-purple-300' : 'text-purple-600 dark:text-purple-400'
+                        }`}>
                           {year}
                         </td>
                       </tr>
@@ -377,7 +499,8 @@ export default function UploadPage() {
                 </table>
               </div>
             </div>
-                        {/* Month Table */}
+
+            {/* Month Table */}
             <div className="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden">
               <div className="bg-gradient-to-r from-amber-600 to-yellow-600 px-6 py-4">
                 <h3 className="text-lg font-semibold text-white">活動數據月份</h3>
@@ -410,13 +533,17 @@ export default function UploadPage() {
                       <tr
                         key={month}
                         onClick={() => setPart4(month.slice(0, 2))}
-                        className={`cursor-pointer transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/30 ${
-                          idx % 2 === 0
+                        className={`cursor-pointer transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-700/30 ${
+                          part4 === month.slice(0, 2) 
+                            ? 'bg-amber-50 dark:bg-amber-900/30 border-l-4 border-amber-500 shadow-md ring-2 ring-amber-200 dark:ring-amber-800' 
+                            : idx % 2 === 0
                             ? 'bg-white dark:bg-slate-800/30'
                             : 'bg-slate-50/50 dark:bg-slate-700/20'
                         }`}
                       >
-                        <td className="px-4 py-3 text-sm font-mono font-semibold text-amber-600 dark:text-amber-400">
+                        <td className={`px-4 py-3 text-sm font-mono font-semibold ${
+                          part4 === month.slice(0, 2) ? 'text-amber-700 dark:text-amber-300' : 'text-amber-600 dark:text-amber-400'
+                        }`}>
                           {month}
                         </td>
                       </tr>
@@ -459,7 +586,7 @@ export default function UploadPage() {
           <div
             onDragOver={(e) => e.preventDefault()}
             onDrop={handleDrop}
-            className="relative w-full h-64 flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl cursor-pointer transition-all duration-300 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/30 dark:hover:bg-blue-900/10 group bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm"
+            className="hidden sm:flex relative w-full h-64 flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl cursor-pointer transition-all duration-300 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/30 dark:hover:bg-blue-900/10 group bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm"
           >
             <div className="text-center">
               <div className="mb-4 p-4 rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/50 dark:to-cyan-900/50 group-hover:from-blue-200 group-hover:to-cyan-200 dark:group-hover:from-blue-800/50 dark:group-hover:to-cyan-800/50 transition-all duration-300 mx-auto w-fit">
@@ -584,6 +711,128 @@ export default function UploadPage() {
             </div>
           )}
         </div>
+        {/* Rename Modal */}
+        {renameModal && (
+          <>
+            {/* Dimmed backdrop ‑‑ pointer‑events none so underlying tables stay clickable */}
+            <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm pointer-events-none" />
+
+            {/* Modal box */}
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full pointer-events-auto">
+                <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-4 text-center">
+                  請完成檔名
+                </h2>
+                <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 text-center">
+                  請由下拉選單選取檔名片段，完成後按「確認」上傳。<br />
+                  若不需此檔案，請按「取消」跳過。
+                </p>
+
+                {/* File preview */}
+                {previewUrl ? (
+                  <>
+                    <Image
+                      src={previewUrl}
+                      alt="預覽"
+                      width={112}
+                      height={112}
+                      className="w-28 h-28 object-cover rounded-lg mb-2 mx-auto"
+                      unoptimized
+                    />
+                    <div className="mb-4 text-center text-sm text-slate-500 dark:text-slate-400">
+                      {renameModal?.name}
+                    </div>
+                  </>
+                ) : (
+                  <div className="mb-4 text-center text-sm text-slate-500 dark:text-slate-400">
+                    {renameModal?.name}
+                  </div>
+                )}
+
+                {/* Live preview */}
+                <div className="flex justify-center mb-6 text-lg font-mono">
+                  <span className="text-blue-600">{part1 || 'xxxxx'}</span>_
+                  <span className="text-emerald-600">{part2 || 'xx'}</span>_
+                  <span className="text-purple-600">{part3 || 'xxxx'}</span>_
+                  <span className="text-amber-600">{part4 || 'xx'}</span>
+                </div>
+
+                {/* Dropdown selectors */}
+                <div className="grid grid-cols-1 gap-4 mb-6">
+                  {/* Location */}
+                  <select
+                    value={part1}
+                    onChange={(e) => setPart1(e.target.value)}
+                    className="px-4 py-3 bg-slate-100 dark:bg-slate-700 rounded-lg text-base font-mono h-12"
+                  >
+                    <option value="">場站編碼</option>
+                    {LOCATION_OPTIONS.map(([val, label]) => (
+                      <option key={val} value={val}>{label}</option>
+                    ))}
+                  </select>
+
+                  {/* Activity */}
+                  <select
+                    value={part2}
+                    onChange={(e) => setPart2(e.target.value)}
+                    className="px-4 py-3 bg-slate-100 dark:bg-slate-700 rounded-lg text-base font-mono h-12"
+                  >
+                    <option value="">活動代碼</option>
+                    {ACTIVITY_OPTIONS.map(([val, label]) => (
+                      <option key={val} value={val}>{label}</option>
+                    ))}
+                  </select>
+
+                  {/* Year */}
+                  <select
+                    value={part3}
+                    onChange={(e) => setPart3(e.target.value)}
+                    className="px-4 py-3 bg-slate-100 dark:bg-slate-700 rounded-lg text-base font-mono h-12"
+                  >
+                    <option value="">年度</option>
+                    {YEAR_OPTIONS.map(([val, label]) => (
+                      <option key={val} value={val}>{label}</option>
+                    ))}
+                  </select>
+
+                  {/* Month */}
+                  <select
+                    value={part4}
+                    onChange={(e) => setPart4(e.target.value)}
+                    className="px-4 py-3 bg-slate-100 dark:bg-slate-700 rounded-lg text-base font-mono h-12"
+                  >
+                    <option value="">月份</option>
+                    {MONTH_OPTIONS.map(([val, label]) => (
+                      <option key={val} value={val}>{label}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => {
+                      setPart1('');
+                      setPart2('');
+                      setPart3('');
+                      setPart4('');
+                      setRenameModal(null);   // discard current file, move to next
+                    }}
+                    className="px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200"
+                  >
+                    取消
+                  </button>
+                  <button
+                    onClick={handleRenameConfirm}
+                    disabled={!isFileNameComplete}
+                    className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50"
+                  >
+                    確認
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </main>
       </div>
     </>
