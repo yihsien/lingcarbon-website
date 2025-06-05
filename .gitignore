@@ -46,3 +46,4 @@ next-env.d.ts
 # IDE settings
 .vscode/
 .idea/
+.env*.local

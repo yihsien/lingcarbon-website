@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Upload, FileText, CheckCircle, AlertCircle, X, Cloud, Zap } from 'lucide-react';
 import Header from '@/components/Header';
 import Image from 'next/image';
+import { upload } from '@vercel/blob/client';
 
 export default function UploadPage() {
   const [files, setFiles] = useState<File[]>([]);
@@ -179,67 +180,38 @@ export default function UploadPage() {
 
     setStatus('uploading');
     setProgress(0);
-    setErrors([]); // clear any previous errors
-    const startTime = Date.now();
+    setErrors([]);
 
-    // Build one multipart payload with unique field names
-    const fd = new FormData();
-    files.forEach((f, i) => fd.append(`file${i}`, f, f.name));
+    const total = files.length;
 
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', '/api/upload');
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
 
-    // Track progress
-    xhr.upload.onprogress = (e) => {
-      if (e.lengthComputable) {
-        const pct = Math.round((e.loaded / e.total) * 100);
-        setProgress(pct);
+        // 1️⃣ Upload directly to Vercel Blob (the SDK fetches the token for us)
+        await upload(file.name, file, {
+          handleUploadUrl: '/api/upload',   // our Route Handler
+          access: 'public',
+          onUploadProgress: ({ percentage }) => {
+            // Aggregate progress across all files
+            const overall = Math.round(((i + percentage / 100) / total) * 100);
+            setProgress(overall);
+          },
+        });
       }
-    };
 
-    xhr.onload = () => {
-      const finish = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          setFiles([]);
-          setStatus('done');
-          setProgress(100);
-        } else {
-          const err =
-            (xhr.response && JSON.parse(xhr.response).error) ||
-            xhr.statusText ||
-            '上傳失敗';
-          setErrors((prev) => [...prev, err]);
-          setStatus('idle');
-          setProgress(0);
-        }
-      };
-
-      const elapsed = Date.now() - startTime;
-      const delay = Math.max(0, 1500 - elapsed); // ensure the progress bar shows ≥ 1.5 s
-      if (delay) {
-        setTimeout(finish, delay);
-      } else {
-        finish();
-      }
-    };
-
-    xhr.onerror = () => {
-      const finish = () => {
-        setErrors((prev) => [...prev, '網路錯誤，請稍後再試']);
-        setStatus('idle');
-        setProgress(0);
-      };
-
-      const elapsed = Date.now() - startTime;
-      const delay = Math.max(0, 1500 - elapsed); // keep progress bar visible ≥ 1.5 s
-      if (delay) {
-        setTimeout(finish, delay);
-      } else {
-        finish();
-      }
-    };
-
-    xhr.send(fd);
+      // Success
+      setFiles([]);
+      setStatus('done');
+      setProgress(100);
+    } catch (err) {
+      setErrors((prev) => [
+        ...prev,
+        (err as Error)?.message || '上傳失敗，請稍後再試',
+      ]);
+      setStatus('idle');
+      setProgress(0);
+    }
   }
 
   const getStatusIcon = () => {
@@ -330,9 +302,12 @@ export default function UploadPage() {
           </h2>
           <div className="flex items-center justify-center gap-4 mb-6">
             <span className="text-xl font-mono font-semibold">
-              <span className="text-blue-600 dark:text-blue-400">{part1 || 'xxxxx'}</span>_
-              <span className="text-emerald-600 dark:text-emerald-400">{part2 || 'xx'}</span>_
-              <span className="text-purple-600 dark:text-purple-400">{part3 || 'xxxx'}</span>_
+              <span className="text-blue-600 dark:text-blue-400">{part1 || 'xxxxx'}</span>
+              <span className="text-slate-600 dark:text-slate-400">_</span>
+              <span className="text-emerald-600 dark:text-emerald-400">{part2 || 'xx'}</span>
+              <span className="text-slate-600 dark:text-slate-400">_</span>
+              <span className="text-purple-600 dark:text-purple-400">{part3 || 'xxxx'}</span>
+              <span className="text-slate-600 dark:text-slate-400">_</span>
               <span className="text-amber-600 dark:text-amber-400">{part4 || 'xx'}</span>
             </span>
             <button
@@ -596,7 +571,7 @@ export default function UploadPage() {
                 將檔案拖曳至此
               </p>
               <p className="text-sm text-slate-500 dark:text-slate-400">
-                或點擊下方按鈕選取檔案
+                或點擊下方按鈕選取檔案<br />檔案大小上限為50MB<br />
               </p>
             </div>
           </div>
@@ -711,128 +686,131 @@ export default function UploadPage() {
             </div>
           )}
         </div>
-        {/* Rename Modal */}
-        {renameModal && (
+{/* Rename Modal */}
+{renameModal && (
+  <>
+    {/* Dimmed backdrop */}
+    <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm pointer-events-none" />
+
+    {/* Modal box */}
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-6 max-w-sm w-full pointer-events-auto">
+        <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4 text-center">
+          請完成活動數據檔案命名
+        </h2>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 text-center">
+          由下拉選單選取檔名片段，完成後按「確認」上傳。<br />
+          若不需此檔案，請按「取消」跳過。
+        </p>
+
+        {/* File preview */}
+        {previewUrl ? (
           <>
-            {/* Dimmed backdrop ‑‑ pointer‑events none so underlying tables stay clickable */}
-            <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm pointer-events-none" />
-
-            {/* Modal box */}
-            <div className="fixed inset-0 z-50 flex items-center justify-center">
-              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-6 max-w-sm w-full pointer-events-auto">
-                <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-4 text-center">
-                  請完成檔名
-                </h2>
-                <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 text-center">
-                  請由下拉選單選取檔名片段，完成後按「確認」上傳。<br />
-                  若不需此檔案，請按「取消」跳過。
-                </p>
-
-                {/* File preview */}
-                {previewUrl ? (
-                  <>
-                    <Image
-                      src={previewUrl}
-                      alt="預覽"
-                      width={112}
-                      height={112}
-                      className="w-28 h-28 object-cover rounded-lg mb-2 mx-auto"
-                      unoptimized
-                    />
-                    <div className="mb-4 text-center text-sm text-slate-500 dark:text-slate-400">
-                      {renameModal?.name}
-                    </div>
-                  </>
-                ) : (
-                  <div className="mb-4 text-center text-sm text-slate-500 dark:text-slate-400">
-                    {renameModal?.name}
-                  </div>
-                )}
-
-                {/* Live preview */}
-                <div className="flex justify-center mb-6 text-lg font-mono">
-                  <span className="text-blue-600">{part1 || 'xxxxx'}</span>_
-                  <span className="text-emerald-600">{part2 || 'xx'}</span>_
-                  <span className="text-purple-600">{part3 || 'xxxx'}</span>_
-                  <span className="text-amber-600">{part4 || 'xx'}</span>
-                </div>
-
-                {/* Dropdown selectors */}
-                <div className="grid grid-cols-1 gap-4 mb-6">
-                  {/* Location */}
-                  <select
-                    value={part1}
-                    onChange={(e) => setPart1(e.target.value)}
-                    className="px-4 py-3 bg-slate-100 dark:bg-slate-700 rounded-lg text-base font-mono h-12"
-                  >
-                    <option value="">場站編碼</option>
-                    {LOCATION_OPTIONS.map(([val, label]) => (
-                      <option key={val} value={val}>{label}</option>
-                    ))}
-                  </select>
-
-                  {/* Activity */}
-                  <select
-                    value={part2}
-                    onChange={(e) => setPart2(e.target.value)}
-                    className="px-4 py-3 bg-slate-100 dark:bg-slate-700 rounded-lg text-base font-mono h-12"
-                  >
-                    <option value="">活動代碼</option>
-                    {ACTIVITY_OPTIONS.map(([val, label]) => (
-                      <option key={val} value={val}>{label}</option>
-                    ))}
-                  </select>
-
-                  {/* Year */}
-                  <select
-                    value={part3}
-                    onChange={(e) => setPart3(e.target.value)}
-                    className="px-4 py-3 bg-slate-100 dark:bg-slate-700 rounded-lg text-base font-mono h-12"
-                  >
-                    <option value="">年度</option>
-                    {YEAR_OPTIONS.map(([val, label]) => (
-                      <option key={val} value={val}>{label}</option>
-                    ))}
-                  </select>
-
-                  {/* Month */}
-                  <select
-                    value={part4}
-                    onChange={(e) => setPart4(e.target.value)}
-                    className="px-4 py-3 bg-slate-100 dark:bg-slate-700 rounded-lg text-base font-mono h-12"
-                  >
-                    <option value="">月份</option>
-                    {MONTH_OPTIONS.map(([val, label]) => (
-                      <option key={val} value={val}>{label}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex justify-end gap-3">
-                  <button
-                    onClick={() => {
-                      setPart1('');
-                      setPart2('');
-                      setPart3('');
-                      setPart4('');
-                      setRenameModal(null);   // discard current file, move to next
-                    }}
-                    className="px-4 py-2 rounded-lg bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200"
-                  >
-                    取消
-                  </button>
-                  <button
-                    onClick={handleRenameConfirm}
-                    disabled={!isFileNameComplete}
-                    className="px-4 py-2 rounded-lg bg-blue-600 text-white disabled:opacity-50"
-                  >
-                    確認
-                  </button>
-                </div>
-              </div>
+            <Image
+              src={previewUrl}
+              alt="預覽"
+              width={112}
+              height={112}
+              className="w-28 h-28 object-cover rounded-lg mb-2 mx-auto border border-slate-200 dark:border-slate-600"
+              unoptimized
+            />
+            <div className="mb-4 text-center text-sm text-slate-600 dark:text-slate-400">
+              {renameModal?.name}
             </div>
           </>
+        ) : (
+          <div className="mb-4 text-center text-sm text-slate-600 dark:text-slate-400">
+            {renameModal?.name}
+          </div>
         )}
+
+        {/* Live preview - improved colors with better contrast */}
+        <div className="flex justify-center mb-6 text-lg font-mono bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
+          <span className="text-blue-700 dark:text-blue-300 font-semibold">{part1 || 'xxxxx'}</span>
+          <span className="text-slate-700 dark:text-slate-400 font-semibold">_</span>
+          <span className="text-emerald-700 dark:text-emerald-300 font-semibold">{part2 || 'xx'}</span>
+          <span className="text-slate-700 dark:text-slate-400 font-semibold">_</span>
+          <span className="text-violet-700 dark:text-violet-300 font-semibold">{part3 || 'xxxx'}</span>
+          <span className="text-slate-700 dark:text-slate-400 font-semibold">_</span>
+          <span className="text-amber-700 dark:text-amber-300 font-semibold">{part4 || 'xx'}</span>
+        </div>
+
+        {/* Dropdown selectors */}
+        <div className="grid grid-cols-1 gap-4 mb-6">
+          {/* Location */}
+          <select
+            value={part1}
+            onChange={(e) => setPart1(e.target.value)}
+            className="px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-base font-mono h-12 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+          >
+            <option value="">場站編碼</option>
+            {LOCATION_OPTIONS.map(([val, label]) => (
+              <option key={val} value={val}>{label}</option>
+            ))}
+          </select>
+
+          {/* Activity */}
+          <select
+            value={part2}
+            onChange={(e) => setPart2(e.target.value)}
+            className="px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-base font-mono h-12 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+          >
+            <option value="">活動代碼</option>
+            {ACTIVITY_OPTIONS.map(([val, label]) => (
+              <option key={val} value={val}>{label}</option>
+            ))}
+          </select>
+
+          {/* Year */}
+          <select
+            value={part3}
+            onChange={(e) => setPart3(e.target.value)}
+            className="px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-base font-mono h-12 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+          >
+            <option value="">年度</option>
+            {YEAR_OPTIONS.map(([val, label]) => (
+              <option key={val} value={val}>{label}</option>
+            ))}
+          </select>
+
+          {/* Month */}
+          <select
+            value={part4}
+            onChange={(e) => setPart4(e.target.value)}
+            className="px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-base font-mono h-12 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+          >
+            <option value="">月份</option>
+            {MONTH_OPTIONS.map(([val, label]) => (
+              <option key={val} value={val}>{label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={() => {
+              setPart1('');
+              setPart2('');
+              setPart3('');
+              setPart4('');
+              setRenameModal(null);   // discard current file, move to next
+            }}
+            className="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 transition-colors font-medium"
+          >
+            取消
+          </button>
+          <button
+            onClick={handleRenameConfirm}
+            disabled={!isFileNameComplete}
+            className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-600 text-white disabled:text-slate-500 dark:disabled:text-slate-400 transition-colors font-medium disabled:cursor-not-allowed"
+          >
+            確認
+          </button>
+        </div>
+      </div>
+    </div>
+  </>
+)}
       </main>
       </div>
     </>

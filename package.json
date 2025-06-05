@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@types/busboy": "^1.5.4",
+    "@vercel/blob": "^1.1.1",
     "busboy": "^1.6.0",
     "clsx": "^2.1.1",
     "firebase": "^11.8.1",

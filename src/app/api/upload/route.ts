@@ -1,191 +1,179 @@
 import { google } from 'googleapis';
-import { NextRequest, NextResponse } from 'next/server';
+import { handleUpload} from '@vercel/blob/client';
+import { NextResponse } from 'next/server';
 import { Readable } from 'stream';
-import Busboy from 'busboy';
-import type { FileInfo } from 'busboy';
 
-// If your TS config complains about the default export of `busboy`,
-// enable `esModuleInterop` or suppress like this:
-//   // @ts-ignore-next-line
-//   import Busboy from 'busboy';
-// We already have esModuleInterop enabled in `tsconfig.json`. If not,
-// uncomment the next directive.
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
-/*  ─── Settings ─────────────────────────────────────────────────── */
-
-export const runtime = 'nodejs';                 // force Node (edge has 1 MB limit)
-export const dynamic = 'force-dynamic';          // don't cache
-
-const invalidChars = /[\\/?%*:|"<>]/;            // forbidden chars
-const MAX_LEN = 255;                             // filename length limit
-
-/*  ─── Helpers ──────────────────────────────────────────────────── */
-
-type ServiceAccountCredentials = {
-  type: 'service_account';
-  project_id: string;
-  private_key_id: string;
+type ServiceAccountJSON = {
   private_key: string;
   client_email: string;
-  client_id: string;
-  auth_uri: string;
-  token_uri: string;
-  auth_provider_x509_cert_url: string;
-  client_x509_cert_url: string;
-  universe_domain?: string;
-  [key: string]: string | undefined;
+  [k: string]: string | undefined;
 };
 
-/** Returns an authenticated Google Drive client using the service‑account
- *  JSON stored in the GDRIVE_SERVICE_JSON env var. */
 function getDriveClient() {
   const raw = process.env.GDRIVE_SERVICE_JSON;
   if (!raw) throw new Error('GDRIVE_SERVICE_JSON env missing');
-
-  const creds = JSON.parse(raw) as ServiceAccountCredentials;
-  if (typeof creds.private_key === 'string') {
-    creds.private_key = creds.private_key.replace(/\\n/g, '\n');
+  
+  let creds: ServiceAccountJSON;
+  try {
+    creds = JSON.parse(raw) as ServiceAccountJSON;
+  } catch {
+    throw new Error('Invalid GDRIVE_SERVICE_JSON format');
   }
-
+  
+  // Fix escaped newlines in private key
+  creds.private_key = creds.private_key.replace(/\\n/g, '\n');
+  
   const auth = new google.auth.GoogleAuth({
     credentials: creds,
     scopes: ['https://www.googleapis.com/auth/drive.file'],
   });
-
+  
   return google.drive({ version: 'v3', auth });
 }
 
-// ── Drive client reused across invocations ────────────────
-const drive = getDriveClient();
+const DRIVE_FOLDER = process.env.GDRIVE_TARGET_FOLDER;
 
+type BlobResult = {
+  url: string;
+  pathname: string;
+  contentType?: string;
+};
 
-/*  ─── POST /api/upload ─────────────────────────────────────────── */
-
-export async function POST(req: NextRequest) {
-  // 1. Ensure Drive folder env present
-  const folderId = process.env.GDRIVE_TARGET_FOLDER;
-  if (!folderId) {
-    return NextResponse.json(
-      { error: 'GDRIVE_TARGET_FOLDER env missing' },
-      { status: 500 },
-    );
+function toNodeStream(web: ReadableStream<Uint8Array>): NodeJS.ReadableStream {
+  const fromWeb = (Readable as unknown as {
+    fromWeb?: (stream: ReadableStream<Uint8Array>) => NodeJS.ReadableStream;
+  }).fromWeb;
+  
+  if (typeof fromWeb === 'function') {
+    return fromWeb(web);
   }
-
-  // 2. Stream‑parse the multipart body with Busboy
-  return new Promise<NextResponse>((resolve, reject) => {
-    const results: { name: string; success: boolean; error?: string }[] = [];
-
-    // Cast because Busboy expects a plain object map<string,string>
-    // Headers.getAll isn't available in Node18 ↔ web spec mismatch,
-    // so we collect the *first* value for each header key.
-    const headerEntries: Record<string, string> = {};
-    req.headers.forEach((value, key) => {
-      headerEntries[key.toLowerCase()] = value;
-    });
-    const bb = Busboy({ headers: headerEntries });
-
-    bb.on('file', (_field: string, file: NodeJS.ReadableStream, info: FileInfo) => {
-      const { filename = 'upload.bin', mimeType = 'application/octet-stream' } = info;
-
-      // Validate filename
-      if (invalidChars.test(filename) || filename.length > MAX_LEN) {
-        file.resume(); // drain stream
-        results.push({ name: filename, success: false, error: 'Invalid file name' });
-        return;
+  
+  const reader = web.getReader();
+  return new Readable({
+    async read() {
+      try {
+        const { value, done } = await reader.read();
+        if (done) {
+          this.push(null);
+        } else {
+          this.push(Buffer.from(value));
+        }
+      } catch (err) {
+        this.destroy(err as Error);
       }
-
-      // Directly pipe the incoming stream to Google Drive
-      drive.files.create({
-        requestBody: {
-          name: filename,
-          parents: [folderId],
-          mimeType,
-        },
-        media: {
-          mimeType,
-          body: file,       // ← stream upload
-        },
-        supportsAllDrives: true,
-      })
-      .then(() => {
-        results.push({ name: filename, success: true });
-      })
-      .catch((err: Error) => {
-        results.push({ name: filename, success: false, error: err.message });
-      });
-    });
-
-    bb.on('finish', () => {
-      const successCount = results.filter(r => r.success).length;
-      const failureCount = results.length - successCount;
-
-      if (failureCount === 0) {
-        resolve(
-          NextResponse.json({
-            success: true,
-            message: `Successfully uploaded ${successCount} files`,
-            results,
-          }),
-        );
-      } else if (successCount > 0) {
-        resolve(
-          NextResponse.json({
-            success: false,
-            message: `Partial upload: ${successCount} succeeded, ${failureCount} failed`,
-            results,
-          }, { status: 207 }),
-        );
-      } else {
-        resolve(
-          NextResponse.json({
-            success: false,
-            message: 'All uploads failed',
-            results,
-          }, { status: 500 }),
-        );
-      }
-    });
-
-    bb.on('error', (err) => {
-      reject(err);
-    });
-
-    // Node 20 has Readable.fromWeb, Node ≤18 may not include it in
-    // @types/node yet. Provide a safe fallback.
-    function toNodeStream(web: ReadableStream<Uint8Array>) {
-      // Narrow the static `fromWeb` method without using `any`
-      const fromWeb = (Readable as typeof Readable & {
-        fromWeb?: (stream: ReadableStream<Uint8Array>) => NodeJS.ReadableStream;
-      }).fromWeb;
-
-      if (typeof fromWeb === 'function') {
-        return fromWeb(web);
-      }
-      // Fallback: convert WebReadableStream to async iterator
-      const iterator = web.getReader();
-      return Readable.from(
-        (async function* () {
-          while (true) {
-            const { done, value } = await iterator.read();
-            if (done) break;
-            if (value) yield Buffer.from(value);
-          }
-        })(),
-      );
-    }
-    const nodeStream = toNodeStream(
-      req.body as unknown as ReadableStream<Uint8Array>,
-    );
-    nodeStream.pipe(bb);
-  }).catch((err: Error) => {
-    console.error('Upload Route Error:', err.message);
-    return NextResponse.json(
-      { error: 'Upload failed', details: err.message },
-      { status: 500 },
-    );
+    },
   });
 }
-/*  ─── Dev Setup Reminder ─────────────────────────────────────────
-  pnpm add busboy
-  pnpm add -D @types/busboy      # if your tsconfig doesn't pick up bundled types
-  ──────────────────────────────────────────────────────────────── */
+
+async function uploadToDrive(
+  url: string,
+  pathname: string,
+  mimeType = 'application/octet-stream',
+) {
+  console.log('[DEBUG][Drive] Starting upload to Drive:', { url, pathname, mimeType });
+  
+  if (!DRIVE_FOLDER) {
+    throw new Error('GDRIVE_TARGET_FOLDER environment variable is missing');
+  }
+
+  try {
+    // Create drive client for this specific upload
+    const drive = getDriveClient();
+    
+    console.log('[DEBUG][Drive] Fetching blob from:', url);
+    const res = await fetch(url);
+    
+    if (!res.ok) {
+      throw new Error(`Blob fetch failed: ${res.status} ${res.statusText}`);
+    }
+    
+    if (!res.body) {
+      throw new Error('No response body from blob fetch');
+    }
+
+    const fileName = pathname.split('/').pop() || 'unnamed-file';
+    console.log('[DEBUG][Drive] Uploading file:', fileName, 'to folder:', DRIVE_FOLDER);
+
+    const uploadResult = await drive.files.create({
+      requestBody: {
+        name: fileName,
+        parents: [DRIVE_FOLDER],
+        mimeType,
+      },
+      media: {
+        mimeType,
+        body: toNodeStream(res.body as ReadableStream<Uint8Array>),
+      },
+      supportsAllDrives: true,
+      fields: 'id,name,size,mimeType', // Get back file info for verification
+    });
+
+    console.log('[DEBUG][Drive] Upload successful:', {
+      fileId: uploadResult.data.id,
+      fileName: uploadResult.data.name,
+      size: uploadResult.data.size,
+      mimeType: uploadResult.data.mimeType,
+    });
+
+    return uploadResult.data;
+  } catch (error) {
+    console.error('[DEBUG][Drive] Upload failed:', {
+      error: error instanceof Error ? error.message : String(error),
+      pathname,
+      url,
+    });
+    throw error;
+  }
+}
+
+/* POST handler for Vercel Blob token & URL */
+export async function POST(req: Request) {
+  console.log('[DEBUG][Route] /api/upload POST called');
+  try {
+    const body = await req.json();
+    console.log('[DEBUG][Route] POST body received:', Object.keys(body));
+    
+    const result = await handleUpload({
+      body,
+      request: req,
+      onBeforeGenerateToken: async (pathname) => {
+        console.log('[DEBUG][Blob] onBeforeGenerateToken for:', pathname);
+        const newPathname = `uploads/${Date.now()}-${pathname.split('/').pop()}`;
+        console.log('[DEBUG][Blob] Generated pathname:', newPathname);
+        
+        return {
+          maximumSizeInBytes: 50 * 1024 * 1024, // 50MB
+          pathname: newPathname,
+          allowOverwrite: true,
+        };
+      },
+      onUploadCompleted: async ({ blob }: { blob: BlobResult }) => {
+        console.log('[DEBUG][Blob] upload completed (POST):', blob.pathname);
+        try {
+          await uploadToDrive(
+            blob.url,
+            blob.pathname,
+            blob.contentType ?? 'application/octet-stream',
+          );
+          console.log('[DEBUG][Drive] upload succeeded:', blob.pathname);
+        } catch (err) {
+          console.error('[DEBUG][Drive] upload failed:', (err as Error).message);
+        }
+      },
+    });
+    
+    console.log('[DEBUG][Route] POST handleUpload success:', result);
+    return NextResponse.json(result);
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    console.error('[DEBUG][Route] POST error:', errorMessage);
+    return NextResponse.json(
+      { error: errorMessage },
+      { status: 400 },
+    );
+  }
+}
+
