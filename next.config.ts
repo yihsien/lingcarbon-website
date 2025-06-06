@@ -11,6 +11,22 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        // Redirect all non‑www requests to the www subdomain
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'lingcarbon.com',
+          },
+        ],
+        destination: 'https://www.lingcarbon.com/:path*',
+        permanent: true, // Vercel will return 308 (permanent)
+      },
+    ];
+  },
 };
 
 export default nextConfig;
