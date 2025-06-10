@@ -10,23 +10,46 @@ export function generateStaticParams() {
   return [{ lang: 'en' }, { lang: 'zh' }];
 }
 
-export const metadata: Metadata = {
-  title: 'LingCarbon - Sustainable Carbon Solutions',
-  icons: {
-    icon: '/favicon.png',
-    shortcut: '/favicon.png',
-    apple: '/favicon.png',
-  },
-  description:
-    'LingCarbon empowers organizations with cutting-edge services for carbon accounting, footprint calculation, and achieving carbon neutrality.',
-  alternates: {
-    canonical: '/',
-    languages: {
-      'en-US': '/',
-      'zh-TW': '/zh',
+// Dynamic metadata based on current locale
+export async function generateMetadata({
+  params,
+}: {
+  params: { lang: 'en' | 'zh' };
+}): Promise<Metadata> {
+  const { lang } = await params;
+
+  if (lang === 'zh') {
+    return {
+      title: '零碳科技｜全方位碳管理解決方案',
+      description:
+        '零碳科技（LingCarbon）結合資料科學與軟體工程，提供溫室氣體盤查、碳足跡計算與客製化碳管理規劃服務。',
+      alternates: {
+        canonical: '/zh',
+        languages: { 'en-US': '/en', 'zh-TW': '/zh' },
+      },
+      icons: {
+        icon: '/favicon.png',
+        shortcut: '/favicon.png',
+        apple: '/favicon.png',
+      },
+    };
+  }
+
+  return {
+    title: 'LingCarbon – Sustainable Carbon Solutions',
+    description:
+      'LingCarbon empowers organizations with cutting-edge services for carbon accounting, footprint calculation, and net‑zero planning.',
+    alternates: {
+      canonical: '/en',
+      languages: { 'en-US': '/en', 'zh-TW': '/zh' },
     },
-  },
-};
+    icons: {
+      icon: '/favicon.png',
+      shortcut: '/favicon.png',
+      apple: '/favicon.png',
+    },
+  };
+}
 
 export default async function LangLayout({
   children,
