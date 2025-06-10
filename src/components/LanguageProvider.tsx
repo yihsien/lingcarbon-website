@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * LanguageProvider now supports either `initialLang="zh"` or the legacy `defaultLanguage="zh"`.
+ * The two props are interchangeable; `initialLang` takes precedence.
+ */
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 
 // Re-define translations here or import from a shared file
@@ -364,29 +369,48 @@ const LanguageContext = createContext<Ctx | undefined>(undefined);
 
 interface ProviderProps {
   children: ReactNode;
-  defaultLanguage?: Lang;     // deterministic value for SSR
+  /** initial language to use on first render (alias for backward‑compat) */
+  initialLang?: Lang;
+  /** kept for legacy calls, falls back to 'initialLang' if provided */
+  defaultLanguage?: Lang;
+  /** localStorage key for persistence */
   storageKey?: string;
 }
 
 /* ───────────────────────────────  provider  ──────────────────────────────────── */
 export function LanguageProvider({
   children,
+  initialLang,
   defaultLanguage = 'en',
   storageKey = 'app-lang',
 }: ProviderProps) {
+  // prefer explicitly passed initialLang; fallback to defaultLanguage
+  const firstLang = initialLang ?? defaultLanguage;
   /* 1️⃣  identical value on server and first client render */
-  const [language, setLanguage] = useState<Lang>(defaultLanguage);
+  const [language, setLanguage] = useState<Lang>(firstLang);
 
-  /* 2️⃣  after hydration, read saved value once */
+  /* 2️⃣  after hydration, choose correct language: 
+     - prefer initialLang from route
+     - else fallback to saved value in localStorage
+  */
   useEffect(() => {
-    const saved =
-      (typeof window !== 'undefined'
-        ? (localStorage.getItem(storageKey) as Lang | null)
-        : null) ?? defaultLanguage;
+    if (typeof window === 'undefined') return;
 
-    if (saved !== language) setLanguage(saved);
+    const saved = localStorage.getItem(storageKey) as Lang | null;
+    const target = initialLang ?? saved ?? firstLang;
+
+    if (target !== language) setLanguage(target);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /* 2️⃣-b  whenever the route prefix changes (/en ↔ /zh),
+     update context so page language matches URL */
+  useEffect(() => {
+    if (initialLang && initialLang !== language) {
+      setLanguage(initialLang);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialLang]);
 
   /* 3️⃣  whenever `language` changes, sync <html lang> + localStorage */
   useEffect(() => {

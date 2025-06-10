@@ -5,11 +5,19 @@ import Link from 'next/link';
 //import { Twitter, Linkedin, Github, Mail } from 'lucide-react';
 import AnimatedLogo from './AnimatedLogo';
 import { useTheme } from './ThemeProvider';
+import { useRouter, usePathname } from 'next/navigation';
 import { useLanguage } from './LanguageProvider';
+import { useParams } from 'next/navigation';
 
 const Footer: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useLanguage();
+  const { lang } = useParams<{ lang: 'en' | 'zh' }>();
+  const router = useRouter();
+  const pathname = usePathname();
+  const langPrefix = `/${lang}`;
+  const withLang = (path: string) =>
+    path.startsWith('/') ? `${langPrefix}${path}` : path;
   const currentYear = new Date().getFullYear();
 
   
@@ -27,18 +35,18 @@ const Footer: React.FC = () => {
     { 
       title: t.footerProducts, 
       links: [
-        { name: t.footerProductsLink1, href: "/services#ghg-inventory" }, 
-        { name: t.footerProductsLink2, href: "/services#cfp-calculation" },
-        { name: t.footerProductsLink3, href: "/services#carbon-neutral-strategy" },
-        { name: t.footerProductsLink4, href: "/services#sbti-target-setting" },
-        { name: t.footerProductsLink5, href: "/services#esg-ratings" },
+        { name: t.footerProductsLink1, href: withLang('/services#ghg-inventory') }, 
+        { name: t.footerProductsLink2, href: withLang('/services#cfp-calculation') },
+        { name: t.footerProductsLink3, href: withLang('/services#carbon-neutral-strategy') },
+        { name: t.footerProductsLink4, href: withLang('/services#sbti-target-setting') },
+        { name: t.footerProductsLink5, href: withLang('/services#esg-ratings') },
       ] 
     },
     { 
       title: t.footerCompany, 
       links: [
-        { name: t.footerCompanyLink1, href: "/our-team" },
-        { name: t.footerCompanyLink2, href: "/join-us" },
+        { name: t.footerCompanyLink1, href: withLang('/our-team') },
+        { name: t.footerCompanyLink2, href: withLang('/join-us') },
       ] 
     },
     /*
@@ -69,7 +77,7 @@ const Footer: React.FC = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 lg:grid-cols-6 gap-8 mb-12 justify-items-center sm:justify-items-start">
           <div className="sm:col-span-2 md:col-span-2 lg:col-span-2 mb-8 lg:mb-0 text-center sm:text-left">
-            <Link href="/" className="flex items-center space-x-2 text-xl font-bold mb-4">
+            <Link href={langPrefix} className="flex items-center space-x-2 text-xl font-bold mb-4">
               <AnimatedLogo variant="footer" />
             </Link>
             <p className="text-sm">{t.footerSlogan}</p>
@@ -80,7 +88,33 @@ const Footer: React.FC = () => {
               <ul className="space-y-2">
                 {section.links.map(link => (
                   <li key={link.name}>
-                    <Link href={link.href} className="hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-sky-400)] transition-colors text-sm">
+                    <Link
+                      href={link.href}
+                      onClick={(e) => {
+                        if (link.href.includes('#')) {
+                          e.preventDefault();
+
+                          const [pathOnly, hash] = link.href.split('#');       // "/services", "ghg-inventory"
+                          const currentPath = pathname?.split('#')[0] ?? '';   // strip any existing hash
+
+                          const smoothScroll = () => {
+                            const target = document.getElementById(hash);
+                            if (target) target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                          };
+
+                          if (pathOnly === currentPath || pathOnly === '') {
+                            // Already on the target page; just scroll
+                            smoothScroll();
+                          } else {
+                            // Client‑side navigation, then scroll after route change
+                            router.push(link.href, { scroll: false });
+                            /* allow next tick for the section to mount */
+                            setTimeout(smoothScroll, 0);
+                          }
+                        }
+                      }}
+                      className="hover:text-[var(--color-companyBlue)] dark:hover:text-[var(--color-sky-400)] transition-colors text-sm"
+                    >
                       {link.name}
                     </Link>
                   </li>

@@ -10,6 +10,7 @@ import LanguageToggle from './LanguageToggle';
 //import { useTheme } from './ThemeProvider';
 import { useLanguage } from './LanguageProvider';
 import { useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 
 interface NavItem {
   name: string;
@@ -35,6 +36,8 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
   //const { theme } = useTheme();
   const { t } = useLanguage();
+  const { lang } = useParams<{ lang: 'en' | 'zh' }>();
+  const langPrefix = `/${lang}`;
   const router = useRouter();
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -106,16 +109,18 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
     };
   }, []);
 
+  const withLang = (path: string) =>
+    path.startsWith('/') ? `${langPrefix}${path}` : path;
   const navItemsData: NavItem[] = [
     {
       name: t.navServices,
-      href: '/services',
+      href: withLang('/services'),
         dropdownItems: [
-        { name: t.navServiceGHG,           href: '/services#ghg-inventory',         icon: ClipboardList, description: t.navServiceGHGDesc },
-        { name: t.navServiceFootprinting,  href: '/services#cfp-calculation',       icon: Calculator,    description: t.navServiceFootprintingDesc },
-        { name: t.navServiceStrategy,      href: '/services#carbon-neutral-strategy', icon: Leaf,       description: t.navServiceStrategyDesc },
-        { name: t.navServiceSBTi,          href: '/services#sbti-target-setting',   icon: Target,       description: t.navServiceSBTiDesc },
-        { name: t.navServiceRatings,       href: '/services#esg-ratings',           icon: Award,       description: t.navServiceRatingsDesc },
+        { name: t.navServiceGHG,           href: withLang('/services#ghg-inventory'),         icon: ClipboardList, description: t.navServiceGHGDesc },
+        { name: t.navServiceFootprinting,  href: withLang('/services#cfp-calculation'),       icon: Calculator,    description: t.navServiceFootprintingDesc },
+        { name: t.navServiceStrategy,      href: withLang('/services#carbon-neutral-strategy'), icon: Leaf,       description: t.navServiceStrategyDesc },
+        { name: t.navServiceSBTi,          href: withLang('/services#sbti-target-setting'),   icon: Target,       description: t.navServiceSBTiDesc },
+        { name: t.navServiceRatings,       href: withLang('/services#esg-ratings'),           icon: Award,       description: t.navServiceRatingsDesc },
         ]
     },
     {
@@ -124,13 +129,13 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
       dropdownItems: [
         {
           name: t.navOurTeam,
-          href: '/our-team',
+          href: withLang('/our-team'),
           icon: Users,
           description: t.navOurTeamDesc,
         },
         {
           name: t.navJoinUs,
-          href: '/join-us',
+          href: withLang('/join-us'),
           icon: Briefcase,
           description: t.navJoinUsDesc,
         },
@@ -177,7 +182,7 @@ const Header: React.FC<HeaderProps> = ({ onContactClick }) => {
     <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${headerBgClass}`}>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <Link href="/" className="flex items-center space-x-2">
+          <Link href={langPrefix} className="flex items-center space-x-2">
             <AnimatedLogo
               className="h-8 md:h-9 lingcarbon-logo-main animate-logo"
               variant="main"
