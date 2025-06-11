@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, FileText, CheckCircle, AlertCircle, X, Cloud, Zap } from 'lucide-react';
 import Header from '@/components/Header';
 import Image from 'next/image';
@@ -14,7 +14,11 @@ export default function UploadPage() {
 
   // Filename demo state
   const [part1, setPart1] = useState('');
-  const [part2, setPart2] = useState('');
+  // ---- 4‑digit activity code (main + sub) ----
+  const [part2Main, setPart2Main] = useState('');   // first two digits (01‑21)
+  const [part2Sub,  setPart2Sub]  = useState(''); // last two digits (00‑99)
+  const SPECIAL_ACTIVITY_CODES    = ['12', '14', '16', '20']; // need 01‑99
+  const part2Full                 = `${part2Main || 'xx'}${part2Sub || 'xx'}`;
   const [part3, setPart3] = useState('');
   const [part4, setPart4] = useState('');
   const [copied, setCopied] = useState(false);
@@ -44,6 +48,7 @@ export default function UploadPage() {
 
   // Dropdown option lists [value, label]
   const LOCATION_OPTIONS: [string, string][] = [
+    ['GP000', 'GP000 全公司資料 (全公司資料)'],
     ['GP001', 'GP001 台北車廠 (停車暨保修廠)'],
     ['GP002', 'GP002 台中車廠 (停車暨保修廠)'],
     ['GP003', 'GP003 台南車廠 (停車暨保修廠)'],
@@ -68,17 +73,27 @@ export default function UploadPage() {
     ['GP022', 'GP022 車控中心 (辦公室)'],
   ];
   const ACTIVITY_OPTIONS: [string, string][] = [
-    ['01', '01 甲類大客車加油紀錄'],
-    ['02', '02 公務車加油紀錄'],
-    ['03', '03 尿素水添加紀錄'],
-    ['04', '04 緊急發電機柴油加油紀錄'],
-    ['05', '05 乙炔鋼瓶'],
-    ['06', '06 天然氣'],
-    ['07', '07 補裝瓦斯'],
-    ['08', '08 冰箱／冷氣／飲水機設備銘牌'],
-    ['09', '09 車用冷媒添加紀錄'],
-    ['10', '10 人員活動－出勤紀錄'],
-    ['11', '11 電費單'],
+    ['01', '01 甲類大客車加油紀錄-柴油 (彙總表)'],
+    ['02', '02 甲類大客車加油紀錄-柴油 (自設加油站)'],
+    ['03', '03 甲類大客車加油紀錄-柴油 (中油加油卡)'],
+    ['04', '04 甲類大客車加油紀錄-柴油 (加油機校正紀錄)'],
+    ['05', '05 公務車加油紀錄-汽油'],
+    ['06', '06 公務車加油紀錄-柴油'],
+    ['07', '07 尿素水添加紀錄'],
+    ['08', '08 緊急發電機加油紀錄-柴油'],
+    ['09', '09 乙炔鋼瓶'],
+    ['10', '10 滅火器彙總表'],
+    ['11', '11 冰箱設備彙總表'],
+    ['12', '12 冰箱設備銘牌照片'],
+    ['13', '13 冷氣設備彙總表'],
+    ['14', '14 冷氣設備銘牌照片'],
+    ['15', '15 飲水機彙總表'],
+    ['16', '16 飲水機銘牌照片'],
+    ['17', '17 車用及場站冷媒添加紀錄'],
+    ['18', '18 人員出勤紀錄-司機人員'],
+    ['19', '19 人員出勤紀錄-從業人員'],
+    ['20', '20 電費單'],
+    ['21', '21 其它 (無法分類待確認)'],
   ];
   const YEAR_OPTIONS: [string, string][] = [
     ['2025', '2025 年'],
@@ -100,21 +115,38 @@ export default function UploadPage() {
     ['12', '12 十二月'],
   ];
 
-  const displayFileName = `${part1 || 'xxxxx'}_${part2 || 'xx'}_${part3 || 'xxxx'}_${part4 || 'xx'}`;
-  const isFileNameComplete = Boolean(part1 && part2 && part3 && part4);
+  const displayFileName = `${part1 || 'xxxxx'}_${part2Full}_${part3 || 'xxxx'}_${part4 || 'xx'}`;
+  const isFileNameComplete = Boolean(part1 && part2Main && part2Sub && part3 && part4);
 
   useEffect(() => {
     setCopied(false);
-  }, [part1, part2, part3, part4]);
+  }, [part1, part2Main, part2Sub, part3, part4]);
 
   /**
    * Returns true if the filename WITHOUT EXTENSION matches the required pattern.
-   * Pattern: GP001‑GP022 _ 01‑11 _ 2025/2026 _ 00‑12
+   * Pattern: GP001‑GP022 _ 4-digit activity _ 2025/2026 _ 00‑12
    */
   function isValidFileName(nameWithoutExt: string): boolean {
-    return /^GP0(?:0[1-9]|1[0-9]|2[0-2])_(?:0[1-9]|1[01])_(?:2025|2026)_(?:0[0-9]|1[0-2])$/.test(
-      nameWithoutExt,
-    );
+    const parts = nameWithoutExt.split('_');
+    if (parts.length !== 4) return false;
+
+    const [location, activity, year, month] = parts;
+
+    if (!/^GP0(?:00|0[1-9]|1[0-9]|2[0-2])$/.test(location)) return false;
+    if (!/^[0-9]{4}$/.test(activity)) return false;
+    const main = activity.slice(0, 2);
+    const sub  = activity.slice(2);
+
+    if (['12','14','16','20'].includes(main)) {
+      if (!/^(0[1-9]|[1-9][0-9])$/.test(sub)) return false;
+    } else if (sub !== '00') {
+      return false;
+    }
+
+    if (!/^(2025|2026)$/.test(year)) return false;
+    if (!/^(0[0-9]|1[0-2])$/.test(month)) return false;
+
+    return true;
   }
 
   /** Adds new files; only invalid names go through rename flow */
@@ -233,7 +265,7 @@ export default function UploadPage() {
     const ext = renameModal.name.includes('.')
       ? renameModal.name.substring(renameModal.name.lastIndexOf('.'))
       : '';
-    const newName = `${part1}_${part2}_${part3}_${part4}${ext}`;
+    const newName = `${part1}_${part2Full}_${part3}_${part4}${ext}`;
     const renamed = new File([renameModal], newName, { type: renameModal.type });
 
     setFiles(prev => [...prev, renamed]);
@@ -241,7 +273,8 @@ export default function UploadPage() {
 
     // Reset selectors
     setPart1('');
-    setPart2('');
+    setPart2Main('');
+    setPart2Sub('');
     setPart3('');
     setPart4('');
     setRenameModal(null);   // queue effect will open next file
@@ -289,7 +322,7 @@ export default function UploadPage() {
           </h1>
           <p className="mt-4 text-lg leading-8 text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
             檔名格式：GP001_01_2025_01.副檔名<br />
-            第一段 GP001–GP022，第二段 01–11，年份 2025/2026，月份 00–12
+            第一段 GP001–GP022，第二段 01–21，年份 2025/2026，月份 00–12
           </p>
         </div>
       </section>
@@ -304,7 +337,7 @@ export default function UploadPage() {
             <span className="text-xl font-mono font-semibold">
               <span className="text-blue-600 dark:text-blue-400">{part1 || 'xxxxx'}</span>
               <span className="text-slate-600 dark:text-slate-400">_</span>
-              <span className="text-emerald-600 dark:text-emerald-400">{part2 || 'xx'}</span>
+              <span className="text-emerald-600 dark:text-emerald-400">{part2Full || 'xxxx'}</span>
               <span className="text-slate-600 dark:text-slate-400">_</span>
               <span className="text-purple-600 dark:text-purple-400">{part3 || 'xxxx'}</span>
               <span className="text-slate-600 dark:text-slate-400">_</span>
@@ -341,6 +374,7 @@ export default function UploadPage() {
                   </thead>
                   <tbody>
                     {[
+                      ['GP000', '全公司資料', '全公司資料'],
                       ['GP001', '停車暨保修廠', '台北車廠'],
                       ['GP002', '停車暨保修廠', '台中車廠'],
                       ['GP003', '停車暨保修廠', '台南車廠'],
@@ -402,34 +436,73 @@ export default function UploadPage() {
                   </thead>
                   <tbody>
                     {[
-                      ['01', '甲類大客車加油紀錄'],
-                      ['02', '公務車加油紀錄'],
-                      ['03', '尿素水添加紀錄'],
-                      ['04', '緊急發電機柴油加油紀錄'],
-                      ['05', '乙炔鋼瓶'],
-                      ['06', '天然氣'],
-                      ['07', '補裝瓦斯'],
-                      ['08', '冰箱、冷氣、飲水機設備銘牌'],
-                      ['09', '車用冷媒添加紀錄'],
-                      ['10', '人員活動‑出勤紀錄'],
-                      ['11', '電費單'],
+                      ['01', '甲類大客車加油紀錄-柴油 (彙總表)'],
+                      ['02', '甲類大客車加油紀錄-柴油 (自設加油站)'],
+                      ['03', '甲類大客車加油紀錄-柴油 (中油加油卡)'],
+                      ['04', '甲類大客車加油紀錄-柴油 (加油機校正紀錄)'],
+                      ['05', '公務車加油紀錄-汽油'],
+                      ['06', '公務車加油紀錄-柴油'],
+                      ['07', '尿素水添加紀錄'],
+                      ['08', '緊急發電機加油紀錄-柴油'],
+                      ['09', '乙炔鋼瓶'],
+                      ['10', '滅火器彙總表'],
+                      ['11', '冰箱設備彙總表'],
+                      ['12', '冰箱設備銘牌照片'],
+                      ['13', '冷氣設備彙總表'],
+                      ['14', '冷氣設備銘牌照片'],
+                      ['15', '飲水機彙總表'],
+                      ['16', '飲水機銘牌照片'],
+                      ['17', '車用及場站冷媒添加紀錄'],
+                      ['18', '人員出勤紀錄-司機人員'],
+                      ['19', '人員出勤紀錄-從業人員'],
+                      ['20', '電費單'],
+                      ['21', '其它 (無法分類待確認)'],
                     ].map(([code, desc], idx) => (
-                      <tr
-                        key={code}
-                        onClick={() => setPart2(code)}
-                        className={`cursor-pointer transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-700/30 ${
-                          part2 === code 
-                            ? 'bg-emerald-50 dark:bg-emerald-900/30 border-l-4 border-emerald-500 shadow-md ring-2 ring-emerald-200 dark:ring-emerald-800' 
-                            : idx % 2 === 0 
-                            ? 'bg-white dark:bg-slate-800/30' 
-                            : 'bg-slate-50/50 dark:bg-slate-700/20'
-                        }`}
-                      >
-                        <td className={`px-4 py-3 text-sm font-mono font-semibold ${
-                          part2 === code ? 'text-emerald-700 dark:text-emerald-300' : 'text-emerald-600 dark:text-emerald-400'
-                        }`}>{code}</td>
-                        <td className="px-4 py-3 text-sm text-slate-800 dark:text-slate-200">{desc}</td>
-                      </tr>
+                      <React.Fragment key={code}>
+                        <tr
+                          onClick={() => {
+                            setPart2Main(code);
+                            setPart2Sub(SPECIAL_ACTIVITY_CODES.includes(code) ? '' : '00');
+                          }}
+                          className={`cursor-pointer transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-700/30 ${
+                            part2Main === code 
+                              ? 'bg-emerald-50 dark:bg-emerald-900/30 border-l-4 border-emerald-500 shadow-md ring-2 ring-emerald-200 dark:ring-emerald-800' 
+                              : idx % 2 === 0 
+                              ? 'bg-white dark:bg-slate-800/30' 
+                              : 'bg-slate-50/50 dark:bg-slate-700/20'
+                          }`}
+                        >
+                          <td className={`px-4 py-3 text-sm font-mono font-semibold ${
+                            part2Main === code ? 'text-emerald-700 dark:text-emerald-300' : 'text-emerald-600 dark:text-emerald-400'
+                          }`}>{code}</td>
+                          <td className="px-4 py-3 text-sm text-slate-800 dark:text-slate-200 flex items-center space-x-2">
+                            <span>{desc}</span>
+                            {SPECIAL_ACTIVITY_CODES.includes(code) && part2Main === code && (
+                              <select
+                                autoFocus
+                                value={part2Sub}
+                                onChange={(e) => setPart2Sub(e.target.value)}
+                                className="px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-sm font-mono text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                              >
+                                <option value="">
+                                  {code === '20'
+                                    ? '流水號 （一個電號一個流水號）'
+                                    : '流水號 （一張照片一個流水號）'}
+                                </option>
+                                {Array.from({ length: 99 }, (_, i) => {
+                                  const v = String(i + 1).padStart(2, '0');
+                                  return (
+                                    <option key={v} value={v}>
+                                      {v}
+                                    </option>
+                                  );
+                                })}
+                              </select>
+                            )}
+                          </td>
+                        </tr>
+                        {/* Removed the subrow button grid */}
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>
@@ -693,7 +766,7 @@ export default function UploadPage() {
     <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm pointer-events-none" />
 
     {/* Modal box */}
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-auto p-4">
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-6 max-w-sm w-full pointer-events-auto">
         <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4 text-center">
           請完成活動數據檔案命名
@@ -728,7 +801,7 @@ export default function UploadPage() {
         <div className="flex justify-center mb-6 text-lg font-mono bg-slate-50 dark:bg-slate-900 p-3 rounded-lg border border-slate-200 dark:border-slate-700">
           <span className="text-blue-700 dark:text-blue-300 font-semibold">{part1 || 'xxxxx'}</span>
           <span className="text-slate-700 dark:text-slate-400 font-semibold">_</span>
-          <span className="text-emerald-700 dark:text-emerald-300 font-semibold">{part2 || 'xx'}</span>
+          <span className="text-emerald-700 dark:text-emerald-300 font-semibold">{part2Full || 'xxxx'}</span>
           <span className="text-slate-700 dark:text-slate-400 font-semibold">_</span>
           <span className="text-violet-700 dark:text-violet-300 font-semibold">{part3 || 'xxxx'}</span>
           <span className="text-slate-700 dark:text-slate-400 font-semibold">_</span>
@@ -749,10 +822,14 @@ export default function UploadPage() {
             ))}
           </select>
 
-          {/* Activity */}
+          {/* Activity main */}
           <select
-            value={part2}
-            onChange={(e) => setPart2(e.target.value)}
+            value={part2Main}
+            onChange={(e) => {
+              const c = e.target.value;
+              setPart2Main(c);
+              setPart2Sub(SPECIAL_ACTIVITY_CODES.includes(c) ? '' : '00');
+            }}
             className="px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-base font-mono h-12 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           >
             <option value="">活動代碼</option>
@@ -760,37 +837,59 @@ export default function UploadPage() {
               <option key={val} value={val}>{label}</option>
             ))}
           </select>
+          {/* Activity sub serial (only for special codes) */}
+          {SPECIAL_ACTIVITY_CODES.includes(part2Main) && (
+            <select
+              value={part2Sub}
+              onChange={(e) => setPart2Sub(e.target.value)}
+              className="px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-base font-mono h-12 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            >
+              <option value="">
+                {part2Main === '20'
+                  ? '流水號 （一個電號一個流水號）'
+                  : '流水號 （一張照片一個流水號）'}
+              </option>
+              {Array.from({ length: 99 }, (_, i) => {
+                const v = String(i + 1).padStart(2, '0');
+                return <option key={v} value={v}>{v}</option>;
+              })}
+            </select>
+          )}
 
-          {/* Year */}
-          <select
-            value={part3}
-            onChange={(e) => setPart3(e.target.value)}
-            className="px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-base font-mono h-12 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-          >
-            <option value="">年度</option>
-            {YEAR_OPTIONS.map(([val, label]) => (
-              <option key={val} value={val}>{label}</option>
-            ))}
-          </select>
+          {/* Year & Month row */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Year */}
+            <select
+              value={part3}
+              onChange={(e) => setPart3(e.target.value)}
+              className="px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-base font-mono h-12 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            >
+              <option value="">年度</option>
+              {YEAR_OPTIONS.map(([val, label]) => (
+                <option key={val} value={val}>{label}</option>
+              ))}
+            </select>
 
-          {/* Month */}
-          <select
-            value={part4}
-            onChange={(e) => setPart4(e.target.value)}
-            className="px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-base font-mono h-12 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-          >
-            <option value="">月份</option>
-            {MONTH_OPTIONS.map(([val, label]) => (
-              <option key={val} value={val}>{label}</option>
-            ))}
-          </select>
+            {/* Month */}
+            <select
+              value={part4}
+              onChange={(e) => setPart4(e.target.value)}
+              className="px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-base font-mono h-12 text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+            >
+              <option value="">月份</option>
+              {MONTH_OPTIONS.map(([val, label]) => (
+                <option key={val} value={val}>{label}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="flex justify-end gap-3">
           <button
             onClick={() => {
               setPart1('');
-              setPart2('');
+              setPart2Main('');
+              setPart2Sub('');
               setPart3('');
               setPart4('');
               setRenameModal(null);   // discard current file, move to next
