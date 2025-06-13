@@ -96,6 +96,7 @@ export default function UploadPage() {
     ['21', '21 其它 (無法分類待確認)'],
   ];
   const YEAR_OPTIONS: [string, string][] = [
+    ['2024', '2024 年'],
     ['2025', '2025 年'],
     ['2026', '2026 年'],
   ];
@@ -124,7 +125,7 @@ export default function UploadPage() {
 
   /**
    * Returns true if the filename WITHOUT EXTENSION matches the required pattern.
-   * Pattern: GP001‑GP022 _ 4-digit activity _ 2025/2026 _ 00‑12
+   * Pattern: GP001‑GP022 _ 4-digit activity _ 2024/2025/2026 _ 00‑12
    */
   function isValidFileName(nameWithoutExt: string): boolean {
     const parts = nameWithoutExt.split('_');
@@ -143,7 +144,7 @@ export default function UploadPage() {
       return false;
     }
 
-    if (!/^(2025|2026)$/.test(year)) return false;
+    if (!/^(2024|2025|2026)$/.test(year)) return false;
     if (!/^(0[0-9]|1[0-2])$/.test(month)) return false;
 
     return true;
@@ -524,7 +525,7 @@ export default function UploadPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {['2025', '2026'].map((year, idx) => (
+                    {['2024', '2025', '2026'].map((year, idx) => (
                       <tr
                         key={year}
                         onClick={() => setPart3(year)}
